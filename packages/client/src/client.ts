@@ -40,10 +40,9 @@ export class Hex57 {
 		}
 
 		const response = await fetch(
-			`http://localhost:3000/api/${this.version}/${url}`,
+			`https://www.0x57.dev/api/${this.version}/${url}`,
 			options
 		);
-		// const response = fetch(`https://www.0x57.dev/api/${this.version}/${url}`, options);
 
 		if (response.status === 500) {
 			throw new Error("0x57 Service returned a 500");

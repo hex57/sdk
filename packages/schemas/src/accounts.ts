@@ -17,6 +17,7 @@ export const AccountSchema = object({
 		return value;
 	}),
 	workspaceId: string(),
+	environmentId: string(),
 	email: nullable(string()),
 	username: nullable(string()),
 });
