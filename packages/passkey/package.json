@@ -1,10 +1,13 @@
 {
 	"name": "@0x57/passkey",
-	"version": "0.0.0",
+	"version": "0.0.1",
 	"type": "module",
 	"exports": {
 		".": "./dist/index.js"
 	},
+	"files": [
+		"dist"
+	],
 	"scripts": {
 		"build": "tsup",
 		"clean": "rimraf dist .turbo",
