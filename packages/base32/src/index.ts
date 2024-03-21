@@ -37,10 +37,13 @@ export function decode(data: string): Uint8Array {
     .replace(/[IL]/g, "1")
     .replace(/-+/g, "");
 
-  const output: number[] = [];
+  // bufflen formula: 5 bits per char * input.length / 8 bits per byte = total needed bytes
+  const bufflen = Math.floor((input.length * 5) / 8);
+  const output = new Uint8Array(bufflen);
   let bitsRead = 0;
   let buffer = 0;
 
+  let i = 0;
   for (const character of input) {
     const byte = alphabet.indexOf(character);
     if (byte === -1) {
@@ -53,7 +56,7 @@ export function decode(data: string): Uint8Array {
 
     if (bitsRead >= 8) {
       bitsRead -= 8;
-      output.push(buffer | (byte >> bitsRead));
+      output[i++] = buffer | (byte >> bitsRead);
       buffer = (byte << (8 - bitsRead)) & 0xff;
     } else {
       buffer |= byte << (8 - bitsRead);
@@ -61,8 +64,8 @@ export function decode(data: string): Uint8Array {
   }
 
   if (buffer > 0) {
-    output.push(buffer);
+    output[i] = buffer;
   }
 
-  return Uint8Array.from(output);
+  return output;
 }
