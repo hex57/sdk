@@ -15,7 +15,7 @@ npm install bitflag-js
 Then import and use it in your code like this:
 
 ```ts
-import { BitField } from "bitflags-js";
+import { BitField } from "bitflag-js";
 
 const UserBadges = {
 	VERIFIED: 1n << 0n,
