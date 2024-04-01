@@ -8,8 +8,12 @@ export enum RequestMethod {
   DELETE = "DELETE",
 }
 
+export enum APIVersion {
+  ALPHA = "alpha",
+}
+
 export interface Hex57Options {
-  apiVersion?: string;
+  apiVersion?: APIVersion;
   apiBase?: string;
 }
 
@@ -20,7 +24,7 @@ export class Hex57 {
   constructor(
     key: string,
     {
-      apiVersion = "alpha",
+      apiVersion = APIVersion.ALPHA,
       apiBase = "https://www.0x57.com/api",
     }: Hex57Options = {}
   ) {
