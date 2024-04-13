@@ -21,24 +21,27 @@ export function useLogin<ActionResult>({
 	onSuccess,
 	onError,
 }: Prettify<LoginProps<ActionResult>>) {
-	const onSubmit = useCallback(async (event: FormEvent) => {
-		try {
-			event.preventDefault();
+	const onSubmit = useCallback(
+		async (event: FormEvent) => {
+			try {
+				event.preventDefault();
 
-			const credential = await getCredential(challenge, relyingPartyId, {
-				timeout: options?.timeout,
-			});
+				const credential = await getCredential(challenge, relyingPartyId, {
+					timeout: options?.timeout,
+				});
 
-			const data = new FormData();
-			data.set("credential", JSON.stringify(credential));
+				const data = new FormData();
+				data.set("credential", JSON.stringify(credential));
 
-			const result = await action(data);
+				const result = await action(data);
 
-			onSuccess(result);
-		} catch (error) {
-			onError(error);
-		}
-	}, []);
+				onSuccess(result);
+			} catch (error) {
+				onError(error);
+			}
+		},
+		[action, challenge, onError, onSuccess, options?.timeout, relyingPartyId]
+	);
 
 	return onSubmit;
 }

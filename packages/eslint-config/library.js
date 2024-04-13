@@ -6,7 +6,13 @@ const project = resolve(process.cwd(), "tsconfig.json");
 module.exports = {
 	parser: "@typescript-eslint/parser",
 	plugins: ["@typescript-eslint", "eslint-plugin-tsdoc"],
-	extends: ["xo", "xo-typescript", "eslint-config-turbo", "prettier"],
+	extends: [
+		"xo",
+		"xo-typescript",
+		"eslint-config-turbo",
+		"prettier",
+		"plugin:react-hooks/recommended",
+	],
 	globals: {
 		React: true,
 		JSX: true,
@@ -44,6 +50,7 @@ module.exports = {
 		"max-params": 0,
 		"complexity": 0,
 		"tsdoc/syntax": "error",
+		"@typescript-eslint/ban-types": 0,
 		"@typescript-eslint/consistent-type-definitions": 0,
 		"@typescript-eslint/naming-convention": 0,
 		"@typescript-eslint/parameter-properties": 0,

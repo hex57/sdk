@@ -10,7 +10,7 @@ export function useChallengeAction(action: () => Promise<string>) {
 		};
 
 		void getChallenge();
-	}, []);
+	}, [action]);
 
 	return challenge;
 }

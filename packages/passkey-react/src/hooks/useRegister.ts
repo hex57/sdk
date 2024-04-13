@@ -51,7 +51,7 @@ export function useRegister<ActionResult>({
 				onError(error);
 			}
 		},
-		[]
+		[action, challenge, onError, onSuccess, options?.timeout, relyingParty]
 	);
 
 	return register;

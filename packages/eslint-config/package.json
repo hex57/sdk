@@ -18,5 +18,8 @@
 		"eslint-config-xo-typescript": "^3.0.0",
 		"eslint-plugin-only-warn": "^1.1.0",
 		"typescript": "^5.3.3"
+	},
+	"dependencies": {
+		"eslint-plugin-react-hooks": "^4.6.0"
 	}
 }
