@@ -1,4 +1,12 @@
-import { coerce, date, nullable, object, string, type Output } from "valibot";
+import {
+	array,
+	coerce,
+	date,
+	nullable,
+	object,
+	string,
+	type Output,
+} from "valibot";
 
 export const AccountSchema = object({
 	id: string(),
@@ -24,14 +32,12 @@ export const AccountSchema = object({
 
 export type Account = Output<typeof AccountSchema>;
 
-export const CreateAccountResponseSchema = object({
-	accountId: string(),
-});
-export type CreateAccountResponse = Output<typeof CreateAccountResponseSchema>;
-
-export const CreateAccountSessionResponseSchema = object({
+export const AccountResponseSchema = object({
 	account: AccountSchema,
 });
-export type CreateAccountSessionResponse = Output<
-	typeof CreateAccountSessionResponseSchema
->;
+export type AccountResponse = Output<typeof AccountResponseSchema>;
+
+export const AccountListResponseSchema = object({
+	accounts: array(AccountSchema),
+});
+export type AccountListResponse = Output<typeof AccountListResponseSchema>;

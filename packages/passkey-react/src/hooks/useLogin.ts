@@ -1,6 +1,6 @@
 import type { Prettify } from "@0x57/interfaces";
 import { getCredential } from "@0x57/passkey";
-import type { FormEvent } from "react";
+import { useCallback, type FormEvent } from "react";
 
 interface LoginProps<ActionResult> {
 	challenge: string;
@@ -21,7 +21,7 @@ export function useLogin<ActionResult>({
 	onSuccess,
 	onError,
 }: Prettify<LoginProps<ActionResult>>) {
-	const onSubmit = async (event: FormEvent) => {
+	const onSubmit = useCallback(async (event: FormEvent) => {
 		try {
 			event.preventDefault();
 
@@ -38,7 +38,7 @@ export function useLogin<ActionResult>({
 		} catch (error) {
 			onError(error);
 		}
-	};
+	}, []);
 
 	return onSubmit;
 }
