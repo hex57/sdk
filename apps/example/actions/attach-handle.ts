@@ -5,19 +5,16 @@ import { redirect } from "next/navigation";
 import hex57 from "../lib/0x57";
 import { getSession } from "../lib/session";
 
-export default async function editProfile(formData: FormData) {
+export default async function attachHandle(formData: FormData) {
   const session = await getSession();
   const { userId } = session;
 
-  if (userId != null) {
+  if (userId == null) {
     redirect("/login");
   }
 
   try {
-    const result = await hex57.editAccount(userId, {
-      email: formData.get("email"),
-      username: formData.get("username"),
-    });
+    const result = await hex57.registerHandle(userId, formData.get("handle"));
 
     return { success: true };
   } catch (err) {

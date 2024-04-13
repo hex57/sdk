@@ -6,8 +6,11 @@ import {
   AccountSchema,
   CreateAccountResponseSchema,
   CreateAccountSessionResponseSchema,
+  HandleSchema,
+  HandleStringSchema,
   type Account,
   type CreateAccountResponse,
+  type Handle,
 } from "@0x57/schemas";
 import { parse } from "valibot";
 
@@ -89,6 +92,35 @@ export class PasskeyClient extends Hex57 {
 
     const json = (await response.json()) as unknown;
     const data = parse(AccountSchema, json);
+
+    return data;
+  }
+
+  async getHandleFor(accountId: string): Promise<Handle> {
+    const response = await this.request(
+      RequestMethod.GET,
+      `/accounts/${accountId}/handle`
+    );
+
+    const json = (await response.json()) as unknown;
+    const data = parse(HandleSchema, json);
+
+    return data;
+  }
+
+  async registerHandle(forAccountId: string, handle: string): Promise<Handle> {
+    const validHandleString = parse(HandleStringSchema, handle);
+
+    const response = await this.request(
+      RequestMethod.POST,
+      `/accounts/${forAccountId}/handle`,
+      {
+        handle: validHandleString,
+      }
+    );
+
+    const json = (await response.json()) as unknown;
+    const data = parse(HandleSchema, json);
 
     return data;
   }

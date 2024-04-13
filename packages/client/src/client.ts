@@ -1,4 +1,14 @@
 /* eslint-env node */
+import {
+  BadRequest,
+  Base0x57Error,
+  NotFound,
+  PaymentRequired,
+  ServerError,
+  Unauthorized,
+} from "./errors.js";
+
+export * from "./errors.js";
 
 export enum RequestMethod {
   GET = "GET",
@@ -25,7 +35,7 @@ export class Hex57 {
     key: string,
     {
       apiVersion = APIVersion.ALPHA,
-      apiBase = "https://www.0x57.com/api",
+      apiBase = "https://www.0x57.dev/api",
     }: Hex57Options = {}
   ) {
     this.#key = key;
@@ -58,6 +68,7 @@ export class Hex57 {
         Accept: "application/json",
         Authorization: this.#key,
       },
+      credentials: "include",
       method,
     };
 
@@ -66,11 +77,6 @@ export class Hex57 {
     }
 
     const response = await fetch(this.url(url), options);
-
-    if (response.status === 500) {
-      throw new Error("0x57 Service returned a 500");
-    }
-
     if (!response.ok) {
       await this.getErrors(response);
     }
@@ -78,21 +84,45 @@ export class Hex57 {
     return response;
   }
 
+  async accepting<T>(promise: Promise<T>): Promise<T | undefined> {
+    try {
+      return await promise;
+    } catch (error) {
+      if (error instanceof Base0x57Error) return undefined;
+      throw error;
+    }
+  }
+
   async getErrors(response: Response) {
     const errors = (await response.json()) as unknown;
 
+    let errorText = "";
+
     if (typeof errors === "object" && errors != null && "error" in errors) {
       if (typeof errors.error === "string") {
-        throw new Error(`${response.status}: ${errors.error}`);
-      }
-
-      if (Array.isArray(errors.error)) {
-        throw new Error(`${response.status}: ${errors.error.join(", ")}`);
+        errorText = errors.error;
+      } else if (Array.isArray(errors.error)) {
+        errorText = errors.error.join(", ");
       }
     } else if (typeof errors === "string") {
-      throw new Error(`${response.status}: ${errors}`);
+      errorText = errors;
     } else {
-      throw new Error(`Unknown ${response.status} error encountered`);
+      errorText = `Unknown ${response.status} error encountered`;
+    }
+
+    switch (response.status) {
+      case 400:
+        throw new BadRequest(errorText);
+      case 401:
+        throw new Unauthorized(errorText);
+      case 404:
+        throw new NotFound(errorText);
+      case 402:
+        throw new PaymentRequired(errorText);
+      case 500:
+        throw new ServerError(errorText);
+      default:
+        throw new Error(errorText);
     }
   }
 }
