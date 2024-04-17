@@ -27,7 +27,7 @@ export class Hex57 {
 		key: string,
 		{
 			apiVersion = APIVersion.ALPHA,
-			apiBase = "https://www.0x57.com/api",
+			apiBase = "https://www.0x57.dev/api",
 			fetch = globalThis.fetch,
 		}: Hex57Options = {}
 	) {
