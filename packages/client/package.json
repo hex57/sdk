@@ -16,5 +16,9 @@
 		"lint": "eslint . --max-warnings 0",
 		"prepublish": "npm run clean && npm run build"
 	},
-	"dependencies": {}
+	"dependencies": {
+		"@0x57/interfaces": "*",
+		"@0x57/schemas": "*",
+		"bitflag-js": "*"
+	}
 }

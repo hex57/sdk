@@ -9,12 +9,10 @@ import {
 	type Output,
 } from "valibot";
 
-export const CredentialSchema = object({
+export const AccountCredentialSchema = object({
 	id: string(),
 	accountId: string(),
 	name: nullable(string()),
-	externalId: string(),
-	publicKey: string(),
 	signCount: number(),
 
 	createdAt: coerce(date(), (value) => {
@@ -33,18 +31,17 @@ export const CredentialSchema = object({
 	}),
 });
 
-export type Credential = Output<typeof CredentialSchema>;
+export type AccountCredential = Output<typeof AccountCredentialSchema>;
 
-// Option A:
 export const AccountCredentialResponseSchema = object({
-	credential: CredentialSchema,
+	credential: AccountCredentialSchema,
 });
 export type AccountCredentialResponse = Output<
 	typeof AccountCredentialResponseSchema
 >;
 
 export const AccountCredentialListResponseSchema = object({
-	credentials: array(CredentialSchema),
+	credentials: array(AccountCredentialSchema),
 });
 export type AccountCredentialListResponse = Output<
 	typeof AccountCredentialListResponseSchema

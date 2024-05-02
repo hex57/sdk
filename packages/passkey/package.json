@@ -21,6 +21,7 @@
 		"@0x57/interfaces": "*",
 		"@0x57/schemas": "*",
 		"@github/webauthn-json": "^2.1.1",
+		"bitflag-js": "*",
 		"valibot": "^0.29.0"
 	}
 }

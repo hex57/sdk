@@ -49,6 +49,7 @@ module.exports = {
 		"no-await-in-loop": 0,
 		"max-params": 0,
 		"complexity": 0,
+		"no-negated-condition": 0,
 		"tsdoc/syntax": "error",
 		"@typescript-eslint/ban-types": 0,
 		"@typescript-eslint/consistent-type-definitions": 0,

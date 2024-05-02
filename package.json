@@ -3,6 +3,7 @@
 	"private": true,
 	"scripts": {
 		"build": "turbo build --filter='./packages/*'",
+		"clean": "turbo clean",
 		"dev": "turbo dev --filter='./apps/example'",
 		"lint": "turbo lint",
 		"test": "vitest",
