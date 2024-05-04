@@ -1,43 +1,22 @@
 /* eslint-env node */
 
-import {
-	AccountCredentialResponseSchema,
-	AccountResponseSchema,
-	RoleResponseSchema,
-	type Account,
-	type AccountCredential,
-	type Role,
-} from "@0x57/schemas";
 import type { BitField } from "bitflag-js";
-import { parse } from "valibot";
-import type PersistentBitField from "./records/PersistedBitField.js";
+import AccountRecord from "./records/Account.js";
+import AccountCredentialRecord from "./records/AccountCredential.js";
+import RoleRecord from "./records/Role.js";
+import { APIVersion, RestClient, type RestClientOptions } from "./rest.js";
 
-export enum RequestMethod {
-	GET = "GET",
-	POST = "POST",
-	PATCH = "PATCH",
-	PUT = "PUT",
-	DELETE = "DELETE",
-}
+export { APIVersion } from "./rest.js";
 
-export enum APIVersion {
-	ALPHA = "alpha",
-}
-
-export interface Hex57Options {
+export interface Hex57Options extends RestClientOptions {
 	rpid: string;
 	origin: string;
-	apiVersion?: APIVersion;
-	apiBase?: string;
-	fetch?: (url: string, options: ResponseInit) => Promise<Response>;
 }
 
 export class Hex57 {
 	defaultRpid: string | undefined;
 	defaultOrigin: string | undefined;
-	readonly #apiUrl: string;
-	#key: string;
-	#fetch: (url: string, options: ResponseInit) => Promise<Response>;
+	rest: RestClient;
 
 	constructor(
 		key: string,
@@ -49,72 +28,17 @@ export class Hex57 {
 			fetch = globalThis.fetch,
 		}: Hex57Options
 	) {
-		this.#key = key;
-		this.#apiUrl = `${apiBase}/${apiVersion}`;
-		this.#fetch = fetch;
+		this.rest = new RestClient(key, { apiVersion, apiBase, fetch });
 		this.defaultRpid = rpid;
 		this.defaultOrigin = origin;
 	}
 
 	set key(key: string) {
-		this.#key = key;
+		this.rest.key = key;
 	}
 
 	set fetch(fetch: (url: string, options: ResponseInit) => Promise<Response>) {
-		this.#fetch = fetch;
-	}
-
-	url(path: string) {
-		return `${this.#apiUrl}${path}`;
-	}
-
-	async request<T>(
-		method: RequestMethod,
-		url: string,
-		body?: Record<string, unknown>
-	) {
-		const options: RequestInit = {
-			headers: {
-				"Content-Type": "application/json",
-				"Accept": "application/json",
-				"Authorization": this.#key,
-			},
-			method,
-		};
-
-		if (body != null) {
-			options.body = JSON.stringify(body);
-		}
-
-		const response = await this.#fetch(this.url(url), options);
-
-		if (response.status === 500) {
-			throw new Error("0x57 Service returned a 500");
-		}
-
-		if (!response.ok) {
-			await this.getErrors(response);
-		}
-
-		return response;
-	}
-
-	async getErrors(response: Response) {
-		const errors = (await response.json()) as unknown;
-
-		if (typeof errors === "object" && errors != null && "error" in errors) {
-			if (typeof errors.error === "string") {
-				throw new Error(`${response.status}: ${errors.error}`);
-			}
-
-			if (Array.isArray(errors.error)) {
-				throw new Error(`${response.status}: ${errors.error.join(", ")}`);
-			}
-		} else if (typeof errors === "string") {
-			throw new Error(`${response.status}: ${errors}`);
-		} else {
-			throw new Error(`Unknown ${response.status} error encountered`);
-		}
+		this.rest.fetch = fetch;
 	}
 
 	async register(parameters: {
@@ -122,233 +46,129 @@ export class Hex57 {
 		credential: string;
 		username?: string;
 		email?: string;
-	}): Promise<Account> {
-		const response = await this.request(RequestMethod.POST, "/accounts", {
-			challenge: parameters.challenge,
-			credential: parameters.credential,
-			username: parameters.username,
-			email: parameters.email,
-		});
-
-		const json = (await response.json()) as unknown;
-		const data = parse(AccountResponseSchema, json);
-		return data.account;
+	}): Promise<AccountRecord> {
+		const result = await this.rest.postAccounts(parameters);
+		return new AccountRecord(this, result);
 	}
 
 	async login(parameters: {
 		challenge: string;
 		credential: string;
-	}): Promise<Account> {
-		const response = await this.request(RequestMethod.POST, "/sessions", {
-			challenge: parameters.challenge,
-			credential: parameters.credential,
-		});
-
-		const json = (await response.json()) as unknown;
-		const data = parse(AccountResponseSchema, json);
-
-		return data.account;
+	}): Promise<AccountRecord> {
+		const result = await this.rest.postSessions(parameters);
+		return new AccountRecord(this, result);
 	}
 
-	async getAccount(id: string): Promise<Account> {
-		const response = await this.request(RequestMethod.GET, `/accounts/${id}`);
-
-		const json = (await response.json()) as unknown;
-		const data = parse(AccountResponseSchema, json);
-
-		return data.account;
+	async getAccount(id: string): Promise<AccountRecord> {
+		const result = await this.rest.getAccount(id);
+		return new AccountRecord(this, result);
 	}
 
 	async updateAccount(
 		id: string,
-		{
-			email,
-			username,
-			permissions,
-			flags,
-		}: {
-			email?: string;
-			username?: string;
-			flags?: PersistentBitField | BitField | bigint;
-			permissions?: PersistentBitField | BitField | bigint;
+		parameters: {
+			email?: string | null;
+			username?: string | null;
+			flags?: BitField | bigint;
+			permissions?: BitField | bigint;
 		}
-	): Promise<Account> {
-		const response = await this.request(
-			RequestMethod.PATCH,
-			`/accounts/${id}`,
-			{
-				...(email !== undefined ? { email } : {}),
-				...(username !== undefined ? { username } : {}),
-				...(permissions !== undefined
-					? { permissions: permissions.toString() }
-					: {}),
-				...(flags !== undefined ? { flags: flags.toString() } : {}),
-			}
-		);
-
-		const json = (await response.json()) as unknown;
-		const data = parse(AccountResponseSchema, json);
-
-		return data.account;
+	): Promise<AccountRecord> {
+		const result = await this.rest.patchAccount(id, parameters);
+		return new AccountRecord(this, result);
 	}
 
 	async deleteAccount(id: string): Promise<boolean> {
-		const response = await this.request(
-			RequestMethod.DELETE,
-			`/accounts/${id}`
-		);
-		return response.ok;
+		const result = await this.rest.deleteAccount(id);
+		return result;
 	}
 
 	async createAccountCredential(
 		id: string,
-		{
-			challenge,
-			credential,
-			name,
-		}: { challenge: string; credential: string; name?: string }
-	): Promise<AccountCredential> {
-		const response = await this.request(
-			RequestMethod.POST,
-			`/accounts/${id}/credentials`,
-			{
-				challenge,
-				credential,
-				name,
-			}
-		);
-
-		const json = (await response.json()) as unknown;
-		const data = parse(AccountCredentialResponseSchema, json);
-		return data.credential;
+		parameters: { challenge: string; credential: string; name?: string }
+	): Promise<AccountCredentialRecord> {
+		const result = await this.rest.postAccountCredential(id, parameters);
+		return new AccountCredentialRecord(this, result);
 	}
 
 	async getAccountCredential(
 		accountId: string,
 		id: string
-	): Promise<AccountCredential> {
-		const response = await this.request(
-			RequestMethod.GET,
-			`/accounts/${accountId}/credentials/${id}`
-		);
-
-		const json = (await response.json()) as unknown;
-		const data = parse(AccountCredentialResponseSchema, json);
-
-		return data.credential;
+	): Promise<AccountCredentialRecord> {
+		const result = await this.rest.getAccountCredential(accountId, id);
+		return new AccountCredentialRecord(this, result);
 	}
 
 	async updateAccountCredential(
 		accountId: string,
 		id: string,
-		{ name }: { name?: string | null }
-	): Promise<AccountCredential> {
-		const response = await this.request(
-			RequestMethod.PATCH,
-			`/accounts/${accountId}/credentials/${id}`,
-			{
-				...(name !== undefined ? { name } : {}),
-			}
+		parameters: { name?: string | null }
+	): Promise<AccountCredentialRecord> {
+		const result = await this.rest.patchAccountCredential(
+			accountId,
+			id,
+			parameters
 		);
-
-		const json = (await response.json()) as unknown;
-		const data = parse(AccountCredentialResponseSchema, json);
-
-		return data.credential;
+		return new AccountCredentialRecord(this, result);
 	}
 
 	async deleteAccountCredential(
 		accountId: string,
-		credentialId: string
+		id: string
 	): Promise<boolean> {
-		const response = await this.request(
-			RequestMethod.DELETE,
-			`/accounts/${accountId}/credentials/${credentialId}`
-		);
-		return response.ok;
+		const result = await this.rest.deleteAccountCredential(accountId, id);
+		return result;
 	}
 
-	async createRole(
-		name: string,
-		permissions: BitField | bigint
-	): Promise<Role> {
-		const response = await this.request(RequestMethod.POST, `/roles`, {
-			name,
-			permissions: permissions.toString(),
-		});
-
-		const json = (await response.json()) as unknown;
-		const data = parse(RoleResponseSchema, json);
-
-		return data.role;
+	async createRole(parameters: {
+		name: string;
+		permissions: BitField | bigint;
+	}): Promise<RoleRecord> {
+		const result = await this.rest.postRole(parameters);
+		return new RoleRecord(this, result);
 	}
 
-	async getRole(id: string): Promise<Role> {
-		const response = await this.request(RequestMethod.GET, `/roles/${id}`);
-
-		const json = (await response.json()) as unknown;
-		const data = parse(RoleResponseSchema, json);
-
-		return data.role;
+	async getRole(id: string): Promise<RoleRecord> {
+		const result = await this.rest.getRole(id);
+		return new RoleRecord(this, result);
 	}
 
 	async updateRole(
 		id: string,
-		{
-			name,
-			permissions,
-		}: { name?: string; permissions?: PersistentBitField | BitField | bigint }
-	): Promise<Role> {
-		const response = await this.request(RequestMethod.PATCH, `/roles/${id}`, {
-			...(name != null ? { name } : {}),
-			...(permissions != null ? { permissions: permissions.toString() } : {}),
-		});
-
-		const json = (await response.json()) as unknown;
-		const data = parse(RoleResponseSchema, json);
-
-		return data.role;
+		parameters: {
+			name?: string;
+			permissions?: BitField | bigint;
+		}
+	): Promise<RoleRecord> {
+		const result = await this.rest.patchRole(id, parameters);
+		return new RoleRecord(this, result);
 	}
 
 	async deleteRole(id: string): Promise<boolean> {
-		const response = await this.request(RequestMethod.DELETE, `/roles/${id}`);
-		return response.ok;
+		const result = await this.rest.deleteRole(id);
+		return result;
 	}
 
-	async addAccountRoles(id: string, ...roleIds: string[]): Promise<Account> {
-		const response = await this.request(RequestMethod.POST, `/accounts/roles`, {
-			roleIds,
-		});
-
-		const json = (await response.json()) as unknown;
-		const data = parse(AccountResponseSchema, json);
-
-		return data.account;
+	async addAccountRoles(
+		id: string,
+		...roleIds: string[]
+	): Promise<AccountRecord> {
+		const result = await this.rest.postAccountRoles(id, roleIds);
+		return new AccountRecord(this, result);
 	}
 
-	async removeAccountRoles(id: string, ...roleIds: string[]): Promise<Account> {
-		const response = await this.request(
-			RequestMethod.DELETE,
-			`/accounts/roles`,
-			{
-				roleIds,
-			}
-		);
-
-		const json = (await response.json()) as unknown;
-		const data = parse(AccountResponseSchema, json);
-
-		return data.account;
+	async removeAccountRoles(
+		id: string,
+		...roleIds: string[]
+	): Promise<AccountRecord> {
+		const result = await this.rest.deleteAccountRoles(id, roleIds);
+		return new AccountRecord(this, result);
 	}
 
-	async setAccountRoles(id: string, ...roleIds: string[]): Promise<Account> {
-		const response = await this.request(RequestMethod.PUT, `/accounts/roles`, {
-			roleIds,
-		});
-
-		const json = (await response.json()) as unknown;
-		const data = parse(AccountResponseSchema, json);
-
-		return data.account;
+	async setAccountRoles(
+		id: string,
+		...roleIds: string[]
+	): Promise<AccountRecord> {
+		const result = await this.rest.putAccountRoles(id, roleIds);
+		return new AccountRecord(this, result);
 	}
 }

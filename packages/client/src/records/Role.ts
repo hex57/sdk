@@ -1,33 +1,54 @@
 import type { Role } from "@0x57/schemas";
-import type { BitField } from "bitflag-js";
+import { BitField } from "bitflag-js";
 import type { Hex57 } from "../client.js";
-import PersistentBitField from "./PersistedBitField.js";
 
 export default class RoleRecord {
-	id: string;
-	name: string;
-	permissions: PersistentBitField;
-	updatedAt: Date;
-	createdAt: Date;
 	readonly #client;
+	readonly #id: string;
+	#name: string;
+	#permissions: BitField;
+	#updatedAt: Date;
+	#createdAt: Date;
 
 	constructor(client: Hex57, record: Role) {
 		this.#client = client;
-		this.id = record.id;
-		this.name = record.name;
-		this.permissions = new PersistentBitField(
-			this.#savePermissions,
-			record.permissions
-		);
-		this.updatedAt = record.updatedAt;
-		this.createdAt = record.createdAt;
+		this.#id = record.id;
+		this.#name = record.name;
+		this.#permissions = new BitField(record.permissions);
+		this.#updatedAt = record.updatedAt;
+		this.#createdAt = record.createdAt;
 	}
 
-	async update(params: {
-		name?: string;
-		permissions?: bigint | BitField | PersistentBitField;
-	}) {
-		const result = await this.#client.updateRole(this.id, params);
+	get id() {
+		return this.#id;
+	}
+
+	get name() {
+		return this.#name;
+	}
+
+	get permissions() {
+		return this.#permissions;
+	}
+
+	get updatedAt() {
+		return this.#updatedAt;
+	}
+
+	get createdAt() {
+		return this.#createdAt;
+	}
+
+	setName(name: string) {
+		this.#name = name;
+		return this;
+	}
+
+	async save() {
+		const result = await this.#client.rest.patchRole(this.id, {
+			name: this.#name,
+			permissions: this.#permissions,
+		});
 		this.#initialize(result);
 	}
 
@@ -36,21 +57,14 @@ export default class RoleRecord {
 	}
 
 	async refresh() {
-		const record = await this.#client.getRole(this.id);
+		const record = await this.#client.rest.getRole(this.id);
 		this.#initialize(record);
 	}
 
-	async #savePermissions() {
-		return this.update({ permissions: this.permissions.value });
-	}
-
 	#initialize(record: Role) {
-		this.name = record.name;
-		this.permissions = new PersistentBitField(
-			this.#savePermissions,
-			record.permissions
-		);
-		this.updatedAt = record.updatedAt;
-		this.createdAt = record.createdAt;
+		this.#name = record.name;
+		this.#permissions = new BitField(record.permissions);
+		this.#updatedAt = record.updatedAt;
+		this.#createdAt = record.createdAt;
 	}
 }

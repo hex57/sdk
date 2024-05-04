@@ -31,7 +31,6 @@ export const AccountSchema = object({
 	environmentId: string(),
 	email: nullable(string()),
 	username: nullable(string()),
-	// TODO: convert to BitFields
 	flags: coerce(bigint(), (value) => {
 		if (typeof value === "string" || typeof value === "number") {
 			return BigInt(value);
@@ -39,7 +38,6 @@ export const AccountSchema = object({
 
 		return value;
 	}),
-	// TODO: convert to BitFields
 	permissions: coerce(bigint(), (value) => {
 		if (typeof value === "string" || typeof value === "number") {
 			return BigInt(value);
