@@ -30,7 +30,7 @@ export default async function register(formData: FormData) {
 			email: formData.get("email")?.toString(),
 		});
 
-		session.userId = result.accountId;
+		session.userId = result.id;
 		await session.save();
 		redirect("/profile");
 	} catch (err) {

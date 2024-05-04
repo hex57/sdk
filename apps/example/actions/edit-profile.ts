@@ -9,14 +9,14 @@ export default async function editProfile(formData: FormData) {
 	const session = await getSession();
 	const { userId } = session;
 
-	if (userId != null) {
+	if (userId == null) {
 		redirect("/profile");
 	}
 
 	try {
-		const result = await hex57.editProfile(userId, {
-			email: formData.get("email"),
-			username: formData.get("username"),
+		const result = await hex57.updateAccount(userId, {
+			email: formData.get("email")?.toString(),
+			username: formData.get("username")?.toString(),
 		});
 
 		return { success: true };

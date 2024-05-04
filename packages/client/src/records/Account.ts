@@ -111,7 +111,7 @@ export default class AccountRecord {
 	}
 
 	hasPermission(...flags: BitFlagResolvable[]) {
-		this.#computedPermissions.has(...flags);
+		return this.#computedPermissions.has(...flags);
 	}
 
 	async addCredential(params: {
