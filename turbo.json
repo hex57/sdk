@@ -3,6 +3,9 @@
 	"globalDependencies": ["**/.env.*local"],
 	"globalEnv": ["HEX57_KEY"],
 	"pipeline": {
+		"clean": {
+			"cache": false
+		},
 		"build": {
 			"dependsOn": ["^build"],
 			"outputs": [".next/**", "!.next/cache/**"]

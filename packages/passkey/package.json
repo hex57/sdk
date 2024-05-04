@@ -1,6 +1,6 @@
 {
 	"name": "@0x57/passkey",
-	"version": "0.0.5",
+	"version": "0.0.6",
 	"type": "module",
 	"exports": {
 		".": "./dist/index.js"
@@ -21,6 +21,7 @@
 		"@0x57/interfaces": "*",
 		"@0x57/schemas": "*",
 		"@github/webauthn-json": "^2.1.1",
+		"bitflag-js": "*",
 		"valibot": "^0.29.0"
 	}
 }

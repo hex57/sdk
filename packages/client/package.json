@@ -1,6 +1,6 @@
 {
 	"name": "@0x57/client",
-	"version": "0.0.3",
+	"version": "0.0.4",
 	"type": "module",
 	"exports": {
 		".": "./dist/client.js"
@@ -16,5 +16,9 @@
 		"lint": "eslint . --max-warnings 0",
 		"prepublish": "npm run clean && npm run build"
 	},
-	"dependencies": {}
+	"dependencies": {
+		"@0x57/interfaces": "*",
+		"@0x57/schemas": "*",
+		"bitflag-js": "*"
+	}
 }

@@ -1,106 +1,174 @@
 /* eslint-env node */
 
-export enum RequestMethod {
-	GET = "GET",
-	POST = "POST",
-	PATCH = "PATCH",
-	PUT = "PUT",
-	DELETE = "DELETE",
-}
+import type { BitField } from "bitflag-js";
+import AccountRecord from "./records/Account.js";
+import AccountCredentialRecord from "./records/AccountCredential.js";
+import RoleRecord from "./records/Role.js";
+import { APIVersion, RestClient, type RestClientOptions } from "./rest.js";
 
-export enum APIVersion {
-	ALPHA = "alpha",
-}
+export { APIVersion } from "./rest.js";
 
-export interface Hex57Options {
-	apiVersion?: APIVersion;
-	apiBase?: string;
-	fetch?: (url: string, options: ResponseInit) => Promise<Response>;
+export interface Hex57Options extends RestClientOptions {
+	rpid: string;
+	origin: string;
 }
 
 export class Hex57 {
-	readonly #apiUrl: string;
-	#key: string;
-	#fetch: (url: string, options: ResponseInit) => Promise<Response>;
+	defaultRpid: string | undefined;
+	defaultOrigin: string | undefined;
+	rest: RestClient;
 
 	constructor(
 		key: string,
 		{
+			rpid,
+			origin,
 			apiVersion = APIVersion.ALPHA,
 			apiBase = "https://www.0x57.dev/api",
 			fetch = globalThis.fetch,
-		}: Hex57Options = {}
+		}: Hex57Options
 	) {
-		this.#key = key;
-		this.#apiUrl = `${apiBase}/${apiVersion}`;
-		this.#fetch = fetch;
+		this.rest = new RestClient(key, { apiVersion, apiBase, fetch });
+		this.defaultRpid = rpid;
+		this.defaultOrigin = origin;
 	}
 
 	set key(key: string) {
-		this.#key = key;
+		this.rest.key = key;
 	}
 
 	set fetch(fetch: (url: string, options: ResponseInit) => Promise<Response>) {
-		this.#fetch = fetch;
+		this.rest.fetch = fetch;
 	}
 
-	url(path: string) {
-		// im not stoked on this since there are ways to break this. for example if you pass alpha/ as the version
-		// but it feels unnecessary to pull in an entire library for safe url joining
-		// especially since this is mostly a debug feature
-		if (!path.startsWith("/")) {
-			return `${this.#apiUrl}/${path}`;
-		}
-
-		return `${this.#apiUrl}${path}`;
+	async register(parameters: {
+		challenge: string;
+		credential: string;
+		username?: string;
+		email?: string;
+	}): Promise<AccountRecord> {
+		const result = await this.rest.postAccounts(parameters);
+		return new AccountRecord(this, result);
 	}
 
-	async request<T>(
-		method: RequestMethod,
-		url: string,
-		body?: Record<string, unknown>
-	) {
-		const options: RequestInit = {
-			headers: {
-				"Content-Type": "application/json",
-				"Accept": "application/json",
-				"Authorization": this.#key,
-			},
-			method,
-		};
-
-		if (body != null) {
-			options.body = JSON.stringify(body);
-		}
-
-		const response = await this.#fetch(this.url(url), options);
-
-		if (response.status === 500) {
-			throw new Error("0x57 Service returned a 500");
-		}
-
-		if (!response.ok) {
-			await this.getErrors(response);
-		}
-
-		return response;
+	async login(parameters: {
+		challenge: string;
+		credential: string;
+	}): Promise<AccountRecord> {
+		const result = await this.rest.postSessions(parameters);
+		return new AccountRecord(this, result);
 	}
 
-	async getErrors(response: Response) {
-		const errors = (await response.json()) as unknown;
+	async getAccount(id: string): Promise<AccountRecord> {
+		const result = await this.rest.getAccount(id);
+		return new AccountRecord(this, result);
+	}
 
-		if (typeof errors === "object" && errors != null && "error" in errors) {
-			if (typeof errors.error === "string") {
-				throw new Error(`${response.status}: ${errors.error}`);
-			}
-
-			if (Array.isArray(errors.error)) {
-				throw new Error(`${response.status}: ${errors.error.join(", ")}`);
-			}
-		} else if (typeof errors === "string") {
-			throw new Error(`${response.status}: ${errors}`);
-		} else {
-			throw new Error(`Unknown ${response.status} error encountered`);
+	async updateAccount(
+		id: string,
+		parameters: {
+			email?: string | null;
+			username?: string | null;
+			flags?: BitField | bigint;
+			permissions?: BitField | bigint;
 		}
+	): Promise<AccountRecord> {
+		const result = await this.rest.patchAccount(id, parameters);
+		return new AccountRecord(this, result);
+	}
+
+	async deleteAccount(id: string): Promise<boolean> {
+		const result = await this.rest.deleteAccount(id);
+		return result;
+	}
+
+	async createAccountCredential(
+		id: string,
+		parameters: { challenge: string; credential: string; name?: string }
+	): Promise<AccountCredentialRecord> {
+		const result = await this.rest.postAccountCredential(id, parameters);
+		return new AccountCredentialRecord(this, result);
+	}
+
+	async getAccountCredential(
+		accountId: string,
+		id: string
+	): Promise<AccountCredentialRecord> {
+		const result = await this.rest.getAccountCredential(accountId, id);
+		return new AccountCredentialRecord(this, result);
+	}
+
+	async updateAccountCredential(
+		accountId: string,
+		id: string,
+		parameters: { name?: string | null }
+	): Promise<AccountCredentialRecord> {
+		const result = await this.rest.patchAccountCredential(
+			accountId,
+			id,
+			parameters
+		);
+		return new AccountCredentialRecord(this, result);
+	}
+
+	async deleteAccountCredential(
+		accountId: string,
+		id: string
+	): Promise<boolean> {
+		const result = await this.rest.deleteAccountCredential(accountId, id);
+		return result;
+	}
+
+	async createRole(parameters: {
+		name: string;
+		permissions: BitField | bigint;
+	}): Promise<RoleRecord> {
+		const result = await this.rest.postRole(parameters);
+		return new RoleRecord(this, result);
+	}
+
+	async getRole(id: string): Promise<RoleRecord> {
+		const result = await this.rest.getRole(id);
+		return new RoleRecord(this, result);
+	}
+
+	async updateRole(
+		id: string,
+		parameters: {
+			name?: string;
+			permissions?: BitField | bigint;
+		}
+	): Promise<RoleRecord> {
+		const result = await this.rest.patchRole(id, parameters);
+		return new RoleRecord(this, result);
+	}
+
+	async deleteRole(id: string): Promise<boolean> {
+		const result = await this.rest.deleteRole(id);
+		return result;
+	}
+
+	async addAccountRoles(
+		id: string,
+		...roleIds: string[]
+	): Promise<AccountRecord> {
+		const result = await this.rest.postAccountRoles(id, roleIds);
+		return new AccountRecord(this, result);
+	}
+
+	async removeAccountRoles(
+		id: string,
+		...roleIds: string[]
+	): Promise<AccountRecord> {
+		const result = await this.rest.deleteAccountRoles(id, roleIds);
+		return new AccountRecord(this, result);
+	}
+
+	async setAccountRoles(
+		id: string,
+		...roleIds: string[]
+	): Promise<AccountRecord> {
+		const result = await this.rest.putAccountRoles(id, roleIds);
+		return new AccountRecord(this, result);
 	}
 }

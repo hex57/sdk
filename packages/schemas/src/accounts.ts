@@ -1,5 +1,6 @@
 import {
 	array,
+	bigint,
 	coerce,
 	date,
 	nullable,
@@ -7,6 +8,8 @@ import {
 	string,
 	type Output,
 } from "valibot";
+import { AccountCredentialSchema } from "./credentials.js";
+import { RoleSchema } from "./roles.js";
 
 export const AccountSchema = object({
 	id: string(),
@@ -28,6 +31,22 @@ export const AccountSchema = object({
 	environmentId: string(),
 	email: nullable(string()),
 	username: nullable(string()),
+	flags: coerce(bigint(), (value) => {
+		if (typeof value === "string" || typeof value === "number") {
+			return BigInt(value);
+		}
+
+		return value;
+	}),
+	permissions: coerce(bigint(), (value) => {
+		if (typeof value === "string" || typeof value === "number") {
+			return BigInt(value);
+		}
+
+		return value;
+	}),
+	roles: array(RoleSchema),
+	credentials: array(AccountCredentialSchema),
 });
 
 export type Account = Output<typeof AccountSchema>;

@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
-import editProfile from "@/actions/edit-profile";
-import { getSession } from "@/lib/session";
-import hex57 from "@/lib/0x57";
+import editProfile from "../../../actions/edit-profile";
+import hex57 from "../../../lib/0x57";
+import { getSession } from "../../../lib/session";
 
 export default async function EditProfilePage() {
 	const session = await getSession();
@@ -35,7 +35,7 @@ export default async function EditProfilePage() {
 								name="username"
 								type="text"
 								autoComplete="username"
-								value={account.username}
+								value={account.username ?? ""}
 								required
 								className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
 							/>
@@ -55,7 +55,7 @@ export default async function EditProfilePage() {
 								name="email"
 								type="email"
 								autoComplete="email"
-								value={account.email}
+								value={account.email ?? ""}
 								required
 								className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
 							/>
