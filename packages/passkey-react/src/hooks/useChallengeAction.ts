@@ -1,16 +1,23 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export function useChallengeAction(action: () => Promise<string>) {
 	const [challenge, setChallenge] = useState<string | null>(null);
 
-	useEffect(() => {
+	const refresh = useCallback(() => {
 		const getChallenge = async () => {
-			const challenge = await action();
-			setChallenge(challenge);
+			const value = await action();
+			setChallenge(value);
 		};
 
 		void getChallenge();
 	}, [action]);
 
-	return challenge;
+	// TODO: There needs to be a better way of doing this. Something about
+	// how next returns `action` makes it unstable. We'll want to make this
+	// more robust soon
+	useEffect(() => {
+		refresh();
+	}, []);
+
+	return { challenge, refresh };
 }

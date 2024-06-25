@@ -6,7 +6,7 @@ import {
 	useWebAuthnAvailability,
 } from "@0x57/passkey-react";
 import { redirect } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import registerAction from "../../actions/register";
 
 export default function RegisterForm({
@@ -15,9 +15,13 @@ export default function RegisterForm({
 	createChallenge: () => Promise<string>;
 }) {
 	const isAvailable = useWebAuthnAvailability();
-	const challenge = useChallengeAction(createChallenge);
+	const { challenge } = useChallengeAction(createChallenge);
 	const [email, setEmail] = useState("");
 	const [username, setUsername] = useState("");
+
+	useEffect(() => {
+		console.log(challenge);
+	}, [challenge]);
 
 	const register = useRegister({
 		challenge: challenge ?? "",
