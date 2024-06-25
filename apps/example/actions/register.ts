@@ -10,7 +10,7 @@ export default async function register(formData: FormData) {
 	const { userId, challenge } = session;
 
 	if (userId != null) {
-		redirect("/dashboard");
+		redirect("/workspaces");
 	}
 
 	if (challenge == null) {
