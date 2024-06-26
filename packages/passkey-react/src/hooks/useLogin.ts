@@ -23,6 +23,7 @@ export function useLogin<ActionResult>({
 }: Prettify<LoginProps<ActionResult>>) {
 	const onSubmit = useCallback(
 		async (event: FormEvent) => {
+			let result: ActionResult | undefined;
 			try {
 				event.preventDefault();
 
@@ -33,11 +34,16 @@ export function useLogin<ActionResult>({
 				const data = new FormData();
 				data.set("credential", JSON.stringify(credential));
 
-				const result = await action(data);
-
-				onSuccess(result);
+				result = await action(data);
 			} catch (error) {
 				onError(error);
+				return
+			}
+
+			if (result) {
+				onSuccess(result);
+			} else {
+				onError(new Error("Unknown Error"));
 			}
 		},
 		[action, challenge, onError, onSuccess, options?.timeout, relyingPartyId]
