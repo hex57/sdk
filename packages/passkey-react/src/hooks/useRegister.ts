@@ -26,6 +26,7 @@ export function useRegister<ActionResult>({
 }: Prettify<RegisterProps<ActionResult>>) {
 	const register = useCallback(
 		async (user: { username: string; email: string }) => {
+			let result: ActionResult | undefined;
 			try {
 				const credential = await createCredential(
 					{
@@ -44,11 +45,15 @@ export function useRegister<ActionResult>({
 				data.set("email", user.email);
 				data.set("username", user.username);
 
-				const result = await action(data);
-
-				onSuccess(result);
+				result = await action(data);
 			} catch (error) {
 				onError(error);
+			}
+
+			if (result) {
+				onSuccess(result);
+			} else {
+				onError(new Error("Unknown Error"));
 			}
 		},
 		[action, challenge, onError, onSuccess, options?.timeout, relyingParty]
