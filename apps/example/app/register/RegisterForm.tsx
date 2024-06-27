@@ -8,6 +8,7 @@ import {
 import { redirect } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import registerAction from "../../actions/register";
+import {isRedirectError} from "next/dist/client/components/redirect";
 
 export default function RegisterForm({
 	createChallenge,
@@ -15,7 +16,7 @@ export default function RegisterForm({
 	createChallenge: () => Promise<string>;
 }) {
 	const isAvailable = useWebAuthnAvailability();
-	const { challenge } = useChallengeAction(createChallenge);
+	const challenge = useChallengeAction(createChallenge);
 	const [email, setEmail] = useState("");
 	const [username, setUsername] = useState("");
 
@@ -34,6 +35,9 @@ export default function RegisterForm({
 			redirect("/profile");
 		},
 		onError: (result) => {
+			if (isRedirectError(result)) {
+				throw result;
+			}
 			console.error({ result });
 		},
 	});

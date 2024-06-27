@@ -1,6 +1,6 @@
 import type { Prettify } from "@0x57/interfaces";
 import { createCredential } from "@0x57/passkey";
-import { useCallback } from "react";
+import {useCallback, useState} from "react";
 
 interface RegisterProps<ActionResult> {
 	challenge: string;
@@ -16,7 +16,7 @@ interface RegisterProps<ActionResult> {
 	onError: (error: unknown) => void;
 }
 
-export function useRegister<ActionResult>({
+export function useRegister<ActionResult extends { error?: string }>({
 	challenge,
 	relyingParty,
 	options,
@@ -24,9 +24,12 @@ export function useRegister<ActionResult>({
 	onSuccess,
 	onError,
 }: Prettify<RegisterProps<ActionResult>>) {
+	const [isPending, setIsPending] = useState(false);
+
 	const register = useCallback(
 		async (user: { username: string; email: string }) => {
-			let result: ActionResult | undefined;
+			let result: ActionResult;
+			setIsPending(true);
 			try {
 				const credential = await createCredential(
 					{
@@ -48,16 +51,15 @@ export function useRegister<ActionResult>({
 				result = await action(data);
 			} catch (error) {
 				onError(error);
+				setIsPending(false);
+				return;
 			}
 
-			if (result) {
-				onSuccess(result);
-			} else {
-				onError(new Error("Unknown Error"));
-			}
+			onSuccess(result);
+			setIsPending(false);
 		},
 		[action, challenge, onError, onSuccess, options?.timeout, relyingParty]
 	);
 
-	return register;
+	return { isPending, register };
 }

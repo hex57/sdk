@@ -1,6 +1,6 @@
 import type { Prettify } from "@0x57/interfaces";
 import { getCredential } from "@0x57/passkey";
-import { useCallback, type FormEvent } from "react";
+import {useCallback, type FormEvent, useState} from "react";
 
 interface LoginProps<ActionResult> {
 	challenge: string;
@@ -21,9 +21,11 @@ export function useLogin<ActionResult>({
 	onSuccess,
 	onError,
 }: Prettify<LoginProps<ActionResult>>) {
-	const onSubmit = useCallback(
+	const [isPending, setIsPending] = useState(false);
+	const login = useCallback(
 		async (event: FormEvent) => {
 			let result: ActionResult | undefined;
+			setIsPending(true);
 			try {
 				event.preventDefault();
 
@@ -37,17 +39,16 @@ export function useLogin<ActionResult>({
 				result = await action(data);
 			} catch (error) {
 				onError(error);
+				setIsPending(false);
 				return
 			}
 
-			if (result) {
-				onSuccess(result);
-			} else {
-				onError(new Error("Unknown Error"));
-			}
+			onSuccess(result);
+
+			setIsPending(false);
 		},
 		[action, challenge, onError, onSuccess, options?.timeout, relyingPartyId]
 	);
 
-	return onSubmit;
+	return { isPending, login };
 }

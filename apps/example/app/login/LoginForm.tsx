@@ -7,6 +7,7 @@ import {
 } from "@0x57/passkey-react";
 import { redirect } from "next/navigation";
 import loginAction from "../../actions/login";
+import {isRedirectError} from "next/dist/client/components/redirect";
 
 export default function LoginForm({
 	createChallenge,
@@ -24,6 +25,9 @@ export default function LoginForm({
 			redirect("/profile");
 		},
 		onError: (result) => {
+			if (isRedirectError(result)) {
+				throw result;
+			}
 			console.error({ result });
 		},
 	});
