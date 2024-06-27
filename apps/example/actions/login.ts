@@ -14,24 +14,14 @@ export default async function login(formData: FormData) {
 	}
 
 	if (challenge == null) {
-		return { error: "Invalid credentials - please refresh and try again." };
+		throw new Error("Invalid credentials - please refresh and try again.");
 	}
 
-	try {
-		const result = await hex57.login({
-			challenge,
-			credential: JSON.parse(formData.get("credential")?.toString() ?? ""),
-		});
+	const result = await hex57.login({
+		challenge,
+		credential: JSON.parse(formData.get("credential")?.toString() ?? ""),
+	});
 
-		session.userId = result.id;
-		await session.save();
-		redirect("/profile");
-	} catch (err) {
-		if (isRedirectError(err)) {
-			throw err;
-		}
-
-		console.error(err);
-		return { error: true };
-	}
+	session.userId = result.id;
+	await session.save();
 }

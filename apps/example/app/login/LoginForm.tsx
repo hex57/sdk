@@ -7,6 +7,7 @@ import {
 } from "@0x57/passkey-react";
 import { redirect } from "next/navigation";
 import loginAction from "../../actions/login";
+import {isRedirectError} from "next/dist/client/components/redirect";
 
 export default function LoginForm({
 	createChallenge,
@@ -16,7 +17,7 @@ export default function LoginForm({
 	const isAvailable = useWebAuthnAvailability();
 	const challenge = useChallengeAction(createChallenge);
 
-	const onSubmit = useLogin({
+	const { isPending, login } = useLogin({
 		challenge: challenge ?? "",
 		relyingPartyId: "localhost",
 		action: loginAction,
@@ -24,16 +25,19 @@ export default function LoginForm({
 			redirect("/profile");
 		},
 		onError: (result) => {
+			if (isRedirectError(result)) {
+				throw result;
+			}
 			console.error({ result });
 		},
 	});
 
 	return (
-		<form className="space-y-6" onSubmit={onSubmit}>
+		<form className="space-y-6" onSubmit={login}>
 			<div>
 				<button
 					type="submit"
-					disabled={!isAvailable}
+					disabled={!isAvailable || isPending}
 					className="inline-flex w-full items-center gap-x-1.5 rounded-md bg-indigo-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
 				>
 					<svg

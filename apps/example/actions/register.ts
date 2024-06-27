@@ -14,31 +14,21 @@ export default async function register(formData: FormData) {
 	}
 
 	if (challenge == null) {
-		return { error: "Invalid credentials - please refresh and try again." };
+		throw new Error("Invalid credentials - please refresh and try again.");
 	}
 
-	try {
-		const credential = formData.get("credential");
-		if (credential == null) {
-			return { error: "Invalid credential - please refresh and try again." };
-		}
-
-		const result = await hex57.register({
-			challenge,
-			credential: credential.toString(),
-			username: formData.get("username")?.toString(),
-			email: formData.get("email")?.toString(),
-		});
-
-		session.userId = result.id;
-		await session.save();
-		redirect("/profile");
-	} catch (err) {
-		if (isRedirectError(err)) {
-			throw err;
-		}
-
-		console.error(err);
-		return { error: true };
+	const credential = formData.get("credential");
+	if (credential == null) {
+		throw new Error("Invalid credential - please refresh and try again.");
 	}
+
+	const result = await hex57.register({
+		challenge,
+		credential: credential.toString(),
+		username: formData.get("username")?.toString(),
+		email: formData.get("email")?.toString(),
+	});
+
+	session.userId = result.id;
+	await session.save();
 }

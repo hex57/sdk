@@ -8,6 +8,7 @@ import {
 import { redirect } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import registerAction from "../../actions/register";
+import {isRedirectError} from "next/dist/client/components/redirect";
 
 export default function RegisterForm({
 	createChallenge,
@@ -15,7 +16,7 @@ export default function RegisterForm({
 	createChallenge: () => Promise<string>;
 }) {
 	const isAvailable = useWebAuthnAvailability();
-	const { challenge } = useChallengeAction(createChallenge);
+	const challenge = useChallengeAction(createChallenge);
 	const [email, setEmail] = useState("");
 	const [username, setUsername] = useState("");
 
@@ -23,7 +24,7 @@ export default function RegisterForm({
 		console.log(challenge);
 	}, [challenge]);
 
-	const register = useRegister({
+	const { isPending, register } = useRegister({
 		challenge: challenge ?? "",
 		relyingParty: {
 			id: "localhost",
@@ -34,6 +35,9 @@ export default function RegisterForm({
 			redirect("/profile");
 		},
 		onError: (result) => {
+			if (isRedirectError(result)) {
+				throw result;
+			}
 			console.error({ result });
 		},
 	});
@@ -93,7 +97,7 @@ export default function RegisterForm({
 			<div>
 				<button
 					type="submit"
-					disabled={!isAvailable}
+					disabled={!isAvailable || isPending}
 					className="inline-flex w-full items-center gap-x-1.5 rounded-md bg-indigo-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
 				>
 					<svg
