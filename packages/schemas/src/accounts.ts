@@ -9,7 +9,6 @@ import {
 	type Output,
 } from "valibot";
 import { AccountCredentialSchema } from "./credentials.js";
-import { RoleSchema } from "./roles.js";
 
 export const AccountSchema = object({
 	id: string(),
@@ -38,14 +37,6 @@ export const AccountSchema = object({
 
 		return value;
 	}),
-	permissions: coerce(bigint(), (value) => {
-		if (typeof value === "string" || typeof value === "number") {
-			return BigInt(value);
-		}
-
-		return value;
-	}),
-	roles: array(RoleSchema),
 	credentials: array(AccountCredentialSchema),
 });
 

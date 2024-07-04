@@ -23,7 +23,6 @@ export async function createCredential(
 	challenge: string,
 	options?: Prettify<CredentialOptions>
 ) {
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
 	const json = parseCreationOptionsFromJSON({
 		publicKey: {
 			pubKeyCredParams: [{ alg: -7, type: "public-key" }],
@@ -42,7 +41,6 @@ export async function createCredential(
 		},
 	});
 
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 	return create(json);
 }
 
@@ -57,7 +55,6 @@ export async function getCredential(
 	relyingPartyId: string,
 	options?: Prettify<CredentialOptions>
 ) {
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
 	const json = parseRequestOptionsFromJSON({
 		publicKey: {
 			rpId: relyingPartyId,
@@ -66,6 +63,5 @@ export async function getCredential(
 		},
 	});
 
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 	return get(json);
 }
