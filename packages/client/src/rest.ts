@@ -63,13 +63,15 @@ export class RestClient {
   async request<T>(
     method: RequestMethod,
     url: string,
-    body?: Record<string, unknown>
+    body?: Record<string, unknown>,
+    headers?: Record<string, string>
   ) {
     const options: RequestInit = {
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
         Authorization: this.#key,
+        ...headers,
       },
       method,
     };
