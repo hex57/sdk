@@ -359,11 +359,53 @@ export class RestClient {
 		return data.member;
 	}
 
-	async patchOrganizationMember() {}
+	async patchOrganizationMember(
+		organizationId: string,
+		accountId: string,
+		parameters: {
+			flags?: BitField | bigint;
+		}
+	): Promise<Member> {
+		const response = await this.request(
+			RequestMethod.PATCH,
+			`/organizations/${organizationId}/members/${accountId}`,
+			{
+				...(parameters.flags != null
+					? { flags: parameters.flags.toString() }
+					: {}),
+			}
+		);
 
-	async getOrganizationMembers() {}
+		const json = (await response.json()) as unknown;
+		const data = parse(MemberResponseSchema, json);
 
-	async postOrganizationMember() {}
+		return data.member;
+	}
+
+	async getOrganizationMembers();
+
+	async postOrganizationMember(
+		organizationId: string,
+		accountId: string,
+		parameters?: {
+			flags?: BitField | bigint;
+		}
+	): Promise<Member> {
+		const response = await this.request(
+			RequestMethod.POST,
+			`/organizations/${organizationId}/members/${accountId}`,
+			{
+				...(parameters?.flags != null
+					? { flags: parameters.flags.toString() }
+					: {}),
+			}
+		);
+
+		const json = (await response.json()) as unknown;
+		const data = parse(MemberResponseSchema, json);
+
+		return data.member;
+	}
 
 	async deleteOrganizationRole(
 		organizationId: string,
@@ -391,9 +433,30 @@ export class RestClient {
 		return data.role;
 	}
 
-	async patchOrganizationRole() {}
+	async patchOrganizationRole(
+		organizationId: string,
+		roleId: string,
+		parameters: {
+			name?: string;
+			permissions?: BitField | bigint;
+		}
+	): Promise<Role> {
+		const response = await this.request(
+			RequestMethod.PATCH,
+			`/organizations/${organizationId}/roles/${roleId}`,
+			{
+				...(parameters.name != null ? { name: parameters.name } : {}),
+				...(parameters.permissions != null
+					? { permissions: parameters.permissions.toString() }
+					: {}),
+			}
+		);
 
-	async getOrganizationRole() {}
+		const json = (await response.json()) as unknown;
+		const data = parse(RoleResponseSchema, json);
+
+		return data.role;
+	}
 
 	async postOrganizationRole(
 		organizationId: string,
@@ -456,7 +519,19 @@ export class RestClient {
 		return data.role;
 	}
 
-	async getOrganizations() {}
+	async getOrganizations(pagination: {
+		limit?: number;
+		before?: string;
+		after?: string;
+	}): Promise<Organization[]> {
+		const searchParams = new URLSearchParams(pagination);
+		const response = await this.request(RequestMethod.GET, `/organizations`);
+
+		const json = (await response.json()) as unknown;
+		const data = parse(OrganizationListResponseSchema, json);
+
+		return data.organizations;
+	}
 
 	async postOrganization(parameters: {
 		name: string;
