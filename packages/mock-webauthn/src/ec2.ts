@@ -1,37 +1,49 @@
-import {SigningKey} from "./key.js";
+import type {SerializedSigningKey, SigningKey} from "./key.js";
 import webcrypto from "./crypto.js";
-import cbor from 'cbor-web';
+import cbor from 'cbor-web'
 import * as base64 from "./base64.js";
-import {encodeUrlSafe} from "./base64.js";
+import {encodeASN1SignatureP256} from "./asn1.js";
 
 const EC2_TYPE = 2;
 const EC2_P256_CURVE = 1;
 const EC2_SHA256_ALGO = -7;
 
-export class EC2SigningKey implements SigningKey {
-    constructor (private sk: CryptoKey, public readonly attestationData: ArrayBuffer) {}
+const CBOR_TYPE_KEY = 1
+const CBOR_ALGO_KEY = 3
+const CBOR_CURVE_KEY = -1
+const CBOR_X_KEY = -2
+const CBOR_Y_KEY = -3
 
+export class EC2SigningKey implements SigningKey {
     static async generate() {
         const k = await webcrypto.subtle.generateKey({
             name: "ECDSA",
             namedCurve: "P-256",
-        }, true, ["sign"]);
-        // const keyData = await subtle.exportKey("pkcs8", k.privateKey);
-        const attestationData = await getAttestationData(k.privateKey);
-        return new EC2SigningKey(k.privateKey, attestationData);
+        }, true, ["sign", "verify"]);
+        const attestationData = await getAttestationData(k.publicKey);
+        return new EC2SigningKey(k.privateKey, k.publicKey, attestationData);
     }
 
-    static async import(data: ArrayBuffer) {
-        const key = await webcrypto.subtle.importKey("pkcs8", data, {
+    static async import(data: SerializedSigningKey) {
+        const privateKey = await webcrypto.subtle.importKey("jwk", data.privateKey, {
             name: "ECDSA",
             namedCurve: "P-256",
         }, true, ["sign"]);
-        const attestationData = await getAttestationData(key);
-        return new EC2SigningKey(key, attestationData);
+        const publicKey = await webcrypto.subtle.importKey("jwk", data.publicKey, {
+            name: "ECDSA",
+            namedCurve: "P-256",
+        }, true, ["verify"]);
+        const attestationData = await getAttestationData(publicKey);
+        return new EC2SigningKey(privateKey, publicKey, attestationData);
     }
 
+    constructor (private readonly sk: CryptoKey, private readonly pk: CryptoKey, public readonly attestationData: ArrayBuffer) {}
+
     async export() {
-        return webcrypto.subtle.exportKey("pkcs8", this.sk);
+        return {
+            privateKey: await webcrypto.subtle.exportKey("jwk", this.sk),
+            publicKey: await webcrypto.subtle.exportKey("jwk", this.pk),
+        }
     }
 
     async sign(data: ArrayBuffer) {
@@ -39,26 +51,30 @@ export class EC2SigningKey implements SigningKey {
             name: "ECDSA",
             hash: "SHA-256",
         }, this.sk, data);
-        return new Uint8Array(sig);
+
+        const rawBytes = new Uint8Array(sig);
+        const r = rawBytes.slice(0, 32);
+        const s = rawBytes.slice(32);
+
+        const asn1Signature = encodeASN1SignatureP256(
+            new Uint8Array(r),
+            new Uint8Array(s)
+        );
+
+        return asn1Signature.buffer;
     }
 }
 
-function getAttestationData(key: CryptoKey) {
+async function getAttestationData(key: CryptoKey) {
     return webcrypto.subtle.exportKey('jwk', key)
-        .then(jwk => ({
-            type: EC2_TYPE,
-            algo: EC2_SHA256_ALGO,
-            curve: EC2_P256_CURVE,
-            x: base64.decodeUrlSafe(jwk.x!),
-            y: base64.decodeUrlSafe(jwk.y!)
-        }))
-        .then(info => cbor.encode(info));
-}
-
-interface EC2KeyInfo {
-    type: typeof EC2_TYPE;
-    algo: typeof EC2_SHA256_ALGO;
-    curve: typeof EC2_P256_CURVE;
-    x: ArrayBuffer;
-    y: ArrayBuffer;
+        .then(jwk => {
+            const map = new Map<number, any>();
+            map.set(CBOR_TYPE_KEY, EC2_TYPE);
+            map.set(CBOR_ALGO_KEY, EC2_SHA256_ALGO);
+            map.set(CBOR_CURVE_KEY, EC2_P256_CURVE);
+            map.set(CBOR_X_KEY, base64.decodeUrlSafe(jwk.x!));
+            map.set(CBOR_Y_KEY, base64.decodeUrlSafe(jwk.y!));
+            return map;
+        })
+        .then(cose => cbor.encode(cose));
 }

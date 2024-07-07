@@ -1,8 +1,10 @@
 export function encode(data: ArrayBuffer): string {
+    // eslint-disable-next-line no-restricted-globals
     return btoa(String.fromCharCode(...new Uint8Array(data)));
 }
 
 export function decode(data: string): ArrayBuffer {
+    // eslint-disable-next-line no-restricted-globals
     return Uint8Array.from(atob(data), c => c.charCodeAt(0)).buffer;
 }
 
@@ -30,6 +32,7 @@ export function bigEndianBytes(value: Uint32Array[0], length: number): Uint8Arra
         const shift = (length - i - 1) * 8;
         bytes[i] = value >> shift & 0xFF;
     }
+
     return bytes;
 }
 
@@ -39,14 +42,18 @@ export function authenticatorDataFlags(userPresent: boolean, userVerified: boole
     if (userPresent) {
         flags |= 1 << 0;
     }
+
     if (userVerified) {
         flags |= 1 << 2;
     }
+
     if (attestation) {
         flags |= 1 << 6;
     }
+
     if (extensions) { // extensions not supported yet
         flags |= 1 << 7;
     }
+
     return flags;
 }

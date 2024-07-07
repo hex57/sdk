@@ -1,17 +1,14 @@
-import {RelyingParty} from "./rp.js";
-import {Authenticator} from "./authenticator.js";
-import {Credential} from "./credential.js";
+import type {RelyingParty} from "./rp.js";
+import type {Authenticator} from "./authenticator.js";
+import type {Credential} from "./credential.js";
 import * as base64 from "./base64.js";
 import webcrypto from "./crypto.js";
-import {authenticatorDataFlags} from "./base64.js";
 import {KeyAlgos} from "./key.js";
 import cbor from "cbor-web";
 
 export interface AttestationOptions {
     challenge: ArrayBuffer;
     excludeCredentials: string[];
-    relyingPartyID: string;
-    relyingPartyName: string;
     userID: string;
     userName: string;
     userDisplayName: string;
@@ -34,9 +31,8 @@ export async function createAttestationResponse(rp: RelyingParty, auth: Authenti
     credDataArr.push(...base64.bigEndianBytes(cred.id.byteLength, 2));
     credDataArr.push(...new Uint8Array(cred.id));
     credDataArr.push(...new Uint8Array(publicKeyData));
-    const credData = new Uint8Array(credDataArr);
 
-    const rpIdHash = await webcrypto.subtle.digest("SHA-256", base64.stringToArrayBuffer((rp.id)));
+    const rpIdHash = await webcrypto.subtle.digest("SHA-256", base64.stringToArrayBuffer(rp.id));
 
     const flags = base64.authenticatorDataFlags(!auth.options.userNotPresent, !auth.options.userNotVerified, true, false);
 
@@ -44,27 +40,26 @@ export async function createAttestationResponse(rp: RelyingParty, auth: Authenti
     authDataArr.push(...new Uint8Array(rpIdHash));
     authDataArr.push(flags);
     authDataArr.push(...base64.bigEndianBytes(cred.counter ?? 0, 4));
-    authDataArr.push(...new Uint8Array(credData));
-    const authData = new Uint8Array(authDataArr);
+    authDataArr.push(...credDataArr);
+    const authData = new Uint8Array(authDataArr).buffer;
 
-    const clientDataJSONHashed = await webcrypto.subtle.digest("SHA-256", base64.stringToArrayBuffer(clientDataJSONEncoded));
+    const clientDataJSONHashed = await webcrypto.subtle.digest("SHA-256", base64.stringToArrayBuffer(clientDataJSON));
 
     const verifyDataArr = [...authDataArr];
     verifyDataArr.push(...new Uint8Array(clientDataJSONHashed));
-    const verifyData = new Uint8Array(verifyDataArr);
 
-    const verifyDigest = await webcrypto.subtle.digest("SHA-256", verifyData);
+    const verifyData = new Uint8Array(verifyDataArr).buffer;
 
-    const signature = await cred.key.sign(verifyDigest);
+    const signature = await cred.key.sign(verifyData);
 
     const keyAlgo = KeyAlgos[cred.key.type];
 
     const attestationObject: AttestationObject = {
-        format: "packed",
-        authData: authData,
-        statement: {
-            algorithm: keyAlgo,
-            signature: signature,
+        fmt: "packed",
+        authData,
+        attStmt: {
+            alg: keyAlgo,
+            sig: signature,
         }
     }
     const attestationObjectBytes = cbor.encode(attestationObject);
@@ -87,38 +82,14 @@ export async function createAttestationResponse(rp: RelyingParty, auth: Authenti
     return JSON.stringify(attestationResult);
 }
 
-interface AttestationOptionsValues {
-    challenge: string;
-    excludeCredentials: AttestationOptionsExcludeCredential[];
-    rp: AttestationOptionsRelyingParty;
-    user: AttestationOptionsUser;
-    publicKey: ArrayBuffer;
-}
-
-interface AttestationOptionsRelyingParty {
-    id: string;
-    name: string;
-}
-
-interface AttestationOptionsUser {
-    id: string;
-    name: string;
-    displayName: string;
-}
-
-interface AttestationOptionsExcludeCredential {
-    type: string;
-    id: string;
-}
-
 interface AttestationStatement {
-    algorithm: number;
-    signature: ArrayBuffer;
+    alg: number;
+    sig: ArrayBuffer;
 }
 
 interface AttestationObject {
-    format: string;
-    statement: AttestationStatement;
+    fmt: string;
+    attStmt: AttestationStatement;
     authData: ArrayBuffer;
 }
 

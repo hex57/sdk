@@ -11,7 +11,7 @@ if (typeof window !== "undefined") {
     }
 }
 
-if (!_crypto || !_crypto.subtle) {
+if (!_crypto?.subtle) {
     throw new Error("WebCrypto is not available");
 }
 

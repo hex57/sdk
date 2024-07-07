@@ -13,21 +13,28 @@ export const KeyAlgos = {
 export class Key {
     constructor(
         public readonly type: KeyType,
-        public readonly data: ArrayBuffer,
+        public readonly data: SerializedSigningKey,
         public signingKey?: SigningKey
     ) {}
 
     async ensureSigningKey() {
+        if (this.signingKey) {
+            return;
+        }
+
         switch (this.type) {
             case KeyType.KeyTypeEC2:
                 this.signingKey = await EC2SigningKey.import(this.data);
                 break;
             case KeyType.KeyTypeRSA:
+                throw new Error("RSA signing keys are not yet supported");
                 // this.signingKey = new RSASigningKey(this.data);
-                break;
+
+            // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
             default:
-                throw new Error("Unsupported key type");
+                throw new Error(`Unsupported key type`);
         }
+
         if (!this.signingKey) {
             throw new Error("Failed to create signing key");
         }
@@ -37,6 +44,7 @@ export class Key {
         if (!this.signingKey) {
             await this.ensureSigningKey();
         }
+
         return this.signingKey!.attestationData;
     }
 
@@ -44,8 +52,14 @@ export class Key {
         if (!this.signingKey) {
             await this.ensureSigningKey();
         }
+
         return this.signingKey!.sign(digest);
     }
+}
+
+export interface SerializedSigningKey {
+    privateKey: JsonWebKey;
+    publicKey: JsonWebKey;
 }
 
 export interface SigningKey {
