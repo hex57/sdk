@@ -3,14 +3,22 @@
 import {
 	AccountCredentialResponseSchema,
 	AccountResponseSchema,
+	InvitationResponseSchema,
+	MemberResponseSchema,
+	OrganizationListResponseSchema,
+	OrganizationResponseSchema,
 	RoleResponseSchema,
 	type Account,
 	type AccountCredential,
+	type Invitation,
+	type Member,
+	type Organization,
 	type Role,
 } from "@0x57/schemas";
 import type { BitField } from "bitflag-js";
 import { parse } from "valibot";
-import * as Hex57Errors from "./errors.js";
+import { getErrors } from "./lib/errors.js";
+import { getCoercedSearchParams, getURLwithSearchParams } from "./lib/urls.js";
 
 export enum RequestMethod {
 	GET = "GET",
@@ -85,47 +93,14 @@ export class RestClient {
 		}
 
 		if (!response.ok) {
-			await this.getErrors(response);
+			await getErrors(response);
 		}
 
 		return response;
 	}
 
-	async getErrors(response: Response) {
-		const errors = (await response.json()) as unknown;
-
-		let errorText = "";
-
-		if (typeof errors === "object" && errors != null && "error" in errors) {
-			if (typeof errors.error === "string") {
-				errorText = errors.error;
-			} else if (Array.isArray(errors.error)) {
-				errorText = errors.error.join(", ");
-			}
-		} else if (typeof errors === "string") {
-			errorText = errors;
-		} else {
-			errorText = `Unknown ${response.status} error encountered`;
-		}
-
-		switch (response.status) {
-			case 400:
-				throw new Hex57Errors.BadRequest(errorText);
-			case 401:
-				throw new Hex57Errors.Unauthorized(errorText);
-			case 404:
-				throw new Hex57Errors.NotFound(errorText);
-			case 402:
-				throw new Hex57Errors.PaymentRequired(errorText);
-			case 500:
-				throw new Hex57Errors.ServerError(errorText);
-			default:
-				throw new Error(errorText);
-		}
-	}
-
 	/**
-	 * API Methids
+	 * API Methods
 	 */
 
 	async postAccounts(parameters: {
@@ -283,6 +258,7 @@ export class RestClient {
 		return response.ok;
 	}
 
+	// TODO: Implement
 	async getAccounts() {}
 
 	async deleteOrganizationInvitation(
@@ -311,10 +287,13 @@ export class RestClient {
 		return data.invitation;
 	}
 
+	// TODO: Implement
 	async patchOrganizationInvitation() {}
 
+	// TODO: Implement
 	async postOrganizationInvitation() {}
 
+	// TODO: Implement
 	async getOrganizationInvitations() {}
 
 	async deleteOrganizationMemberRole(
@@ -329,8 +308,10 @@ export class RestClient {
 		return response.ok;
 	}
 
+	// TODO: Implement
 	async postOrganizationMemberRole() {}
 
+	// TODO: Implement
 	async getOrganizationMemberRoles() {}
 
 	async deleteOrganizationMember(
@@ -382,7 +363,27 @@ export class RestClient {
 		return data.member;
 	}
 
-	async getOrganizationMembers();
+	async getOrganizationMembers(
+		organizationId: string,
+		pagination?: {
+			limit?: number;
+			before?: string;
+			after?: string;
+		}
+	) {
+		const response = await this.request(
+			RequestMethod.GET,
+			getURLwithSearchParams(
+				`/organizations/${organizationId}/members`,
+				getCoercedSearchParams(pagination)
+			)
+		);
+
+		const json = (await response.json()) as unknown;
+		const data = parse(OrganizationListResponseSchema, json);
+
+		return data.organizations;
+	}
 
 	async postOrganizationMember(
 		organizationId: string,
@@ -514,9 +515,9 @@ export class RestClient {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(RoleResponseSchema, json);
+		const data = parse(OrganizationResponseSchema, json);
 
-		return data.role;
+		return data.organization;
 	}
 
 	async getOrganizations(pagination: {
@@ -524,8 +525,13 @@ export class RestClient {
 		before?: string;
 		after?: string;
 	}): Promise<Organization[]> {
-		const searchParams = new URLSearchParams(pagination);
-		const response = await this.request(RequestMethod.GET, `/organizations`);
+		const response = await this.request(
+			RequestMethod.GET,
+			getURLwithSearchParams(
+				`/organizations`,
+				getCoercedSearchParams(pagination)
+			)
+		);
 
 		const json = (await response.json()) as unknown;
 		const data = parse(OrganizationListResponseSchema, json);
