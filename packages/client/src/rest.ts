@@ -2,11 +2,15 @@
 
 import {
 	AccountCredentialResponseSchema,
+	AccountListResponseSchema,
 	AccountResponseSchema,
+	InvitationListResponseSchema,
 	InvitationResponseSchema,
+	MemberListResponseSchema,
 	MemberResponseSchema,
 	OrganizationListResponseSchema,
 	OrganizationResponseSchema,
+	RoleListResponseSchema,
 	RoleResponseSchema,
 	type Account,
 	type AccountCredential,
@@ -258,8 +262,21 @@ export class RestClient {
 		return response.ok;
 	}
 
-	// TODO: Implement
-	async getAccounts() {}
+	async getAccounts(pagination?: {
+		limit?: number;
+		before?: string;
+		after?: string;
+	}): Promise<Account[]> {
+		const response = await this.request(
+			RequestMethod.GET,
+			getURLwithSearchParams(`/accounts`, getCoercedSearchParams(pagination))
+		);
+
+		const json = (await response.json()) as unknown;
+		const data = parse(AccountListResponseSchema, json);
+
+		return data.accounts;
+	}
 
 	async deleteOrganizationInvitation(
 		organizationId: string,
@@ -294,15 +311,15 @@ export class RestClient {
 			status?: "pending" | "accepted" | "declined" | "blocked";
 			flags?: BitField | bigint;
 		}
-	) {
+	): Promise<Member> {
 		const response = await this.request(
 			RequestMethod.PATCH,
 			`/organizations/${organizationId}/invitations/${accountId}`,
 			{
+				...(parameters.status != null ? { status: parameters.status } : {}),
 				...(parameters.flags != null
 					? { flags: parameters.flags.toString() }
 					: {}),
-				...(parameters.status != null ? { status: parameters.status } : {}),
 			}
 		);
 
@@ -312,11 +329,52 @@ export class RestClient {
 		return data.member;
 	}
 
-	// TODO: Implement
-	async postOrganizationInvitation() {}
+	async postOrganizationInvitation(
+		organizationId: string,
+		accountId: string,
+		parameters: {
+			status?: "pending" | "accepted" | "declined" | "blocked";
+			flags?: BitField | bigint;
+		}
+	): Promise<Invitation> {
+		const response = await this.request(
+			RequestMethod.POST,
+			`/organizations/${organizationId}/invitations/${accountId}`,
+			{
+				...(parameters?.status != null ? { status: parameters.status } : {}),
+				...(parameters?.flags != null
+					? { flags: parameters.flags.toString() }
+					: {}),
+			}
+		);
 
-	// TODO: Implement
-	async getOrganizationInvitations() {}
+		const json = (await response.json()) as unknown;
+		const data = parse(InvitationResponseSchema, json);
+
+		return data.invitation;
+	}
+
+	async getOrganizationInvitations(
+		organizationId: string,
+		pagination?: {
+			limit?: number;
+			before?: string;
+			after?: string;
+		}
+	): Promise<Invitation[]> {
+		const response = await this.request(
+			RequestMethod.GET,
+			getURLwithSearchParams(
+				`/organizations/${organizationId}/invitations`,
+				getCoercedSearchParams(pagination)
+			)
+		);
+
+		const json = (await response.json()) as unknown;
+		const data = parse(InvitationListResponseSchema, json);
+
+		return data.invitations;
+	}
 
 	async deleteOrganizationMemberRole(
 		organizationId: string,
@@ -330,11 +388,44 @@ export class RestClient {
 		return response.ok;
 	}
 
-	// TODO: Implement
-	async postOrganizationMemberRole() {}
+	async postOrganizationMemberRole(
+		organizationId: string,
+		accountId: string,
+		roleId: string
+	): Promise<Member> {
+		const response = await this.request(
+			RequestMethod.POST,
+			`/organizations/${organizationId}/members/${accountId}/roles/${roleId}`
+		);
 
-	// TODO: Implement
-	async getOrganizationMemberRoles() {}
+		const json = (await response.json()) as unknown;
+		const data = parse(MemberResponseSchema, json);
+
+		return data.member;
+	}
+
+	async getOrganizationMemberRoles(
+		organizationId: string,
+		accountId: string,
+		pagination?: {
+			limit?: number;
+			before?: string;
+			after?: string;
+		}
+	): Promise<Role[]> {
+		const response = await this.request(
+			RequestMethod.GET,
+			getURLwithSearchParams(
+				`/organizations/${organizationId}/members/${accountId}/roles`,
+				getCoercedSearchParams(pagination)
+			)
+		);
+
+		const json = (await response.json()) as unknown;
+		const data = parse(RoleListResponseSchema, json);
+
+		return data.roles;
+	}
 
 	async deleteOrganizationMember(
 		organizationId: string,
@@ -392,7 +483,7 @@ export class RestClient {
 			before?: string;
 			after?: string;
 		}
-	) {
+	): Promise<Member[]> {
 		const response = await this.request(
 			RequestMethod.GET,
 			getURLwithSearchParams(
@@ -402,9 +493,9 @@ export class RestClient {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(OrganizationListResponseSchema, json);
+		const data = parse(MemberListResponseSchema, json);
 
-		return data.organizations;
+		return data.members;
 	}
 
 	async postOrganizationMember(
