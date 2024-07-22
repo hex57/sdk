@@ -287,8 +287,30 @@ export class RestClient {
 		return data.invitation;
 	}
 
-	// TODO: Implement
-	async patchOrganizationInvitation() {}
+	async patchOrganizationInvitation(
+		organizationId: string,
+		accountId: string,
+		parameters: {
+			status?: "pending" | "accepted" | "declined" | "blocked";
+			flags?: BitField | bigint;
+		}
+	) {
+		const response = await this.request(
+			RequestMethod.PATCH,
+			`/organizations/${organizationId}/invitations/${accountId}`,
+			{
+				...(parameters.flags != null
+					? { flags: parameters.flags.toString() }
+					: {}),
+				...(parameters.status != null ? { status: parameters.status } : {}),
+			}
+		);
+
+		const json = (await response.json()) as unknown;
+		const data = parse(MemberResponseSchema, json);
+
+		return data.member;
+	}
 
 	// TODO: Implement
 	async postOrganizationInvitation() {}
