@@ -1,7 +1,7 @@
 import type { AccountCredential } from "@0x57/schemas";
 import type { Hex57 } from "../client.js";
 
-export default class AccountCredentialRecord {
+export default class CredentialRecord {
 	readonly #client;
 	readonly #id: string;
 	readonly #accountId: string;

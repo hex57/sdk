@@ -1,9 +1,10 @@
 /* eslint-env node */
 
 import type { BitField } from "bitflag-js";
-import * as Hex57Errors from "./errors.js";
+import { Base0x57Error } from "./lib/errors.js";
 import AccountRecord from "./records/Account.js";
-import AccountCredentialRecord from "./records/AccountCredential.js";
+import CredentialRecord from "./records/Credential.js";
+import OrganizationRecord from "./records/Organization.js";
 import RoleRecord from "./records/Role.js";
 import { APIVersion, RestClient, type RestClientOptions } from "./rest.js";
 export { APIVersion } from "./rest.js";
@@ -45,7 +46,7 @@ export class Hex57 {
 		try {
 			return await promise;
 		} catch (error) {
-			if (error instanceof Hex57Errors.Base0x57Error) {
+			if (error instanceof Base0x57Error) {
 				return undefined;
 			}
 
@@ -71,13 +72,13 @@ export class Hex57 {
 		return new AccountRecord(this, result);
 	}
 
-	async getAccount(id: string): Promise<AccountRecord> {
-		const result = await this.rest.getAccount(id);
+	async getAccount(accountId: string): Promise<AccountRecord> {
+		const result = await this.rest.getAccount(accountId);
 		return new AccountRecord(this, result);
 	}
 
 	async updateAccount(
-		id: string,
+		accountId: string,
 		parameters: {
 			email?: string | null;
 			username?: string | null;
@@ -85,102 +86,175 @@ export class Hex57 {
 			permissions?: BitField | bigint;
 		}
 	): Promise<AccountRecord> {
-		const result = await this.rest.patchAccount(id, parameters);
+		const result = await this.rest.patchAccount(accountId, parameters);
 		return new AccountRecord(this, result);
 	}
 
-	async deleteAccount(id: string): Promise<boolean> {
-		const result = await this.rest.deleteAccount(id);
+	async deleteAccount(accountId: string): Promise<boolean> {
+		const result = await this.rest.deleteAccount(accountId);
 		return result;
 	}
 
 	async createAccountCredential(
-		id: string,
+		accountId: string,
 		parameters: { challenge: string; credential: string; name?: string }
-	): Promise<AccountCredentialRecord> {
-		const result = await this.rest.postAccountCredential(id, parameters);
-		return new AccountCredentialRecord(this, result);
+	): Promise<CredentialRecord> {
+		const result = await this.rest.postAccountCredential(accountId, parameters);
+		return new CredentialRecord(this, result);
 	}
 
 	async getAccountCredential(
 		accountId: string,
-		id: string
-	): Promise<AccountCredentialRecord> {
-		const result = await this.rest.getAccountCredential(accountId, id);
-		return new AccountCredentialRecord(this, result);
+		credentialId: string
+	): Promise<CredentialRecord> {
+		const result = await this.rest.getAccountCredential(
+			accountId,
+			credentialId
+		);
+		return new CredentialRecord(this, result);
 	}
 
 	async updateAccountCredential(
 		accountId: string,
-		id: string,
+		credentialId: string,
 		parameters: { name?: string | null }
-	): Promise<AccountCredentialRecord> {
+	): Promise<CredentialRecord> {
 		const result = await this.rest.patchAccountCredential(
 			accountId,
-			id,
+			credentialId,
 			parameters
 		);
-		return new AccountCredentialRecord(this, result);
+		return new CredentialRecord(this, result);
 	}
 
 	async deleteAccountCredential(
 		accountId: string,
-		id: string
+		credentialId: string
 	): Promise<boolean> {
-		const result = await this.rest.deleteAccountCredential(accountId, id);
+		const result = await this.rest.deleteAccountCredential(
+			accountId,
+			credentialId
+		);
 		return result;
 	}
 
-	async createRole(parameters: {
+	async createOrganization(parameters: {
 		name: string;
-		permissions: BitField | bigint;
-	}): Promise<RoleRecord> {
-		const result = await this.rest.postRole(parameters);
+		flags: BitField;
+	}): Promise<OrganizationRecord> {
+		const result = await this.rest.postOrganization(parameters);
+		return new OrganizationRecord(this, result);
+	}
+
+	async getOrganization(organizationId: string): Promise<OrganizationRecord> {
+		const result = await this.rest.getOrganization(organizationId);
+		return new OrganizationRecord(this, result);
+	}
+
+	async updateOrganization(
+		organizationId: string,
+		parameters: { name?: string; flags?: BitField }
+	): Promise<OrganizationRecord> {
+		const result = await this.rest.patchOrganization(
+			organizationId,
+			parameters
+		);
+		return new OrganizationRecord(this, result);
+	}
+
+	async deleteOrganization(organizationId: string): Promise<boolean> {
+		const result = await this.rest.deleteOrganization(organizationId);
+		return result;
+	}
+
+	// addOrganizationInvitation;
+	// getOrganizationInvitation;
+	// updateOrganizationInvitation;
+	// deleteOrganizationInvitation;
+
+	// addOrganizationMember;
+	// getOrganizationMember;
+	// updateOrganizationMember;
+	// deleteOrganizationMember;
+
+	// addOrganizationMemberRole;
+	// getOrganizationMemberRole;
+	// updateOrganizationMemberRole;
+	// deleteOrganizationMemberRole;
+
+	async createOrganizationRole(
+		organizationId: string,
+		parameters: {
+			name: string;
+			permissions: BitField | bigint;
+		}
+	): Promise<RoleRecord> {
+		const result = await this.rest.postOrganizationRole(
+			organizationId,
+			parameters
+		);
+
 		return new RoleRecord(this, result);
 	}
 
-	async getRole(id: string): Promise<RoleRecord> {
-		const result = await this.rest.getRole(id);
+	async getOrganizationRole(
+		organizationId: string,
+		roleId: string
+	): Promise<RoleRecord> {
+		const result = await this.rest.getOrganizationRole(organizationId, roleId);
 		return new RoleRecord(this, result);
 	}
 
-	async updateRole(
-		id: string,
+	async updateOrganizationRole(
+		organizationId: string,
+		roleId: string,
 		parameters: {
 			name?: string;
 			permissions?: BitField | bigint;
 		}
 	): Promise<RoleRecord> {
-		const result = await this.rest.patchRole(id, parameters);
+		const result = await this.rest.patchOrganizationRole(
+			organizationId,
+			roleId,
+			parameters
+		);
+
 		return new RoleRecord(this, result);
 	}
 
-	async deleteRole(id: string): Promise<boolean> {
-		const result = await this.rest.deleteRole(id);
+	async deleteOrganizationRole(
+		organizationId: string,
+		roleId: string
+	): Promise<boolean> {
+		const result = await this.rest.deleteOrganizationRole(
+			organizationId,
+			roleId
+		);
+
 		return result;
 	}
 
-	async addAccountRoles(
-		id: string,
-		...roleIds: string[]
-	): Promise<AccountRecord> {
-		const result = await this.rest.postAccountRoles(id, roleIds);
-		return new AccountRecord(this, result);
-	}
+	// async addAccountRoles(
+	// 	id: string,
+	// 	...roleIds: string[]
+	// ): Promise<AccountRecord> {
+	// 	const result = await this.rest.postAccountRoles(id, roleIds);
+	// 	return new AccountRecord(this, result);
+	// }
 
-	async removeAccountRoles(
-		id: string,
-		...roleIds: string[]
-	): Promise<AccountRecord> {
-		const result = await this.rest.deleteAccountRoles(id, roleIds);
-		return new AccountRecord(this, result);
-	}
+	// async removeAccountRoles(
+	// 	id: string,
+	// 	...roleIds: string[]
+	// ): Promise<AccountRecord> {
+	// 	const result = await this.rest.deleteAccountRoles(id, roleIds);
+	// 	return new AccountRecord(this, result);
+	// }
 
-	async setAccountRoles(
-		id: string,
-		...roleIds: string[]
-	): Promise<AccountRecord> {
-		const result = await this.rest.putAccountRoles(id, roleIds);
-		return new AccountRecord(this, result);
-	}
+	// async setAccountRoles(
+	// 	id: string,
+	// 	...roleIds: string[]
+	// ): Promise<AccountRecord> {
+	// 	const result = await this.rest.putAccountRoles(id, roleIds);
+	// 	return new AccountRecord(this, result);
+	// }
 }
