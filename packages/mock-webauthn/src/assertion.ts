@@ -24,22 +24,32 @@ export async function createAssertionResponse(rp: RelyingParty, auth: Authentica
     const clientDataJSON = JSON.stringify(clientData);
     const clientDataJSONEncoded = base64.encodeUrlSafe(base64.stringToArrayBuffer(clientDataJSON));
 
-    const rpIdHash = await webcrypto.subtle.digest("SHA-256", base64.stringToArrayBuffer((rp.id)));
+    const rpIdHash = await webcrypto.subtle.digest("SHA-256", base64.stringToArrayBuffer(rp.id));
     const flags = base64.authenticatorDataFlags(!auth.options.userNotPresent, !auth.options.userNotVerified, true, false);
+
+    const publicKeyData = await cred.key.attestationData();
+
+    const credDataArr = [];
+    credDataArr.push(...new Uint8Array(auth.aaguid));
+    credDataArr.push(...base64.bigEndianBytes(cred.id.byteLength, 2));
+    credDataArr.push(...new Uint8Array(cred.id));
+    credDataArr.push(...new Uint8Array(publicKeyData));
+    const credData = new Uint8Array(credDataArr);
 
     const authDataArr = [];
     authDataArr.push(...new Uint8Array(rpIdHash));
     authDataArr.push(flags);
     authDataArr.push(...base64.bigEndianBytes(cred.counter ?? 0, 4));
-    const authData = new Uint8Array(authDataArr);
+    authDataArr.push(...credData);
+    const authData = new Uint8Array(authDataArr).buffer;
     const authDataEncoded = base64.encodeUrlSafe(authData);
 
-    const clientDataJSONHashed = await webcrypto.subtle.digest("SHA-256", base64.stringToArrayBuffer(clientDataJSONEncoded));
+    const clientDataJSONHashed = await webcrypto.subtle.digest("SHA-256", base64.stringToArrayBuffer(clientDataJSON));
 
     const verifyDataArr = [...authDataArr];
     verifyDataArr.push(...new Uint8Array(clientDataJSONHashed));
-    const verifyData = new Uint8Array(verifyDataArr);
-
+    const verifyData = new Uint8Array(verifyDataArr).buffer;
+    console.log("verifyData", verifyData);
     const verifyDigest = await webcrypto.subtle.digest("SHA-256", verifyData);
 
     const signature = await cred.key.sign(verifyDigest);
