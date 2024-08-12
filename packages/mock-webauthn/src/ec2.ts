@@ -22,7 +22,7 @@ export class EC2SigningKey implements SigningKey {
         namedCurve: "P-256",
       },
       true,
-      ["sign", "verify"]
+      ["sign", "verify"],
     );
     const attestationData = await getAttestationData(k.publicKey);
     return new EC2SigningKey(k.privateKey, k.publicKey, attestationData);
@@ -37,7 +37,7 @@ export class EC2SigningKey implements SigningKey {
         namedCurve: "P-256",
       },
       true,
-      ["sign"]
+      ["sign"],
     );
     const publicKey = await webcrypto.subtle.importKey(
       "jwk",
@@ -47,7 +47,7 @@ export class EC2SigningKey implements SigningKey {
         namedCurve: "P-256",
       },
       true,
-      ["verify"]
+      ["verify"],
     );
     const attestationData = await getAttestationData(publicKey);
     return new EC2SigningKey(privateKey, publicKey, attestationData);
@@ -56,7 +56,7 @@ export class EC2SigningKey implements SigningKey {
   constructor(
     private readonly sk: CryptoKey,
     private readonly pk: CryptoKey,
-    public readonly attestationData: ArrayBuffer
+    public readonly attestationData: ArrayBuffer,
   ) {}
 
   async export() {
@@ -73,7 +73,7 @@ export class EC2SigningKey implements SigningKey {
         hash: "SHA-256",
       },
       this.sk,
-      data
+      data,
     );
 
     const rawBytes = new Uint8Array(sig);
@@ -82,7 +82,7 @@ export class EC2SigningKey implements SigningKey {
 
     const asn1Signature = encodeASN1SignatureP256(
       new Uint8Array(r),
-      new Uint8Array(s)
+      new Uint8Array(s),
     );
 
     return asn1Signature.buffer;

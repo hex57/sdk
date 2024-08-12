@@ -14,9 +14,9 @@ test("EC2 E2E", async ({ expect }) => {
   expect(ec2keys.privateKey).toBeDefined();
   expect(ec2keys.publicKey).toBeDefined();
 
-  const key = new mockWebauthn.Key(KeyType.KeyTypeEC2, ec2keys);
+  const key = new mockWebauthn.Key(KeyType.EC2, ec2keys);
   expect(key).toBeDefined();
-  expect(key.type).toBe(KeyType.KeyTypeEC2);
+  expect(key.type).toBe(KeyType.EC2);
 
   const cred = mockWebauthn.Credential.create(key);
   expect(cred).toBeDefined();

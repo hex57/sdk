@@ -19,7 +19,7 @@ export class Authenticator {
   constructor(
     public options: AuthenticatorOptions,
     public aaguid: ArrayBuffer,
-    public credentials: Credential[] = []
+    public credentials: Credential[] = [],
   ) {}
 
   addCredential(credential: Credential) {
@@ -28,7 +28,7 @@ export class Authenticator {
 
   findAllowedCredential(options: AssertionOptions): Credential | undefined {
     const allowedCredentials = this.credentials.filter((cred) =>
-      cred.isAllowedForAssertion(options)
+      cred.isAllowedForAssertion(options),
     );
     if (allowedCredentials.length === 0) {
       return undefined;

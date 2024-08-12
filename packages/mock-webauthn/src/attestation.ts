@@ -18,7 +18,7 @@ export async function createAttestationResponse(
   rp: RelyingParty,
   auth: Authenticator,
   cred: Credential,
-  options: AttestationOptions
+  options: AttestationOptions,
 ): Promise<string> {
   const clientData = {
     type: "webauthn.create",
@@ -28,7 +28,7 @@ export async function createAttestationResponse(
 
   const clientDataJSON = JSON.stringify(clientData);
   const clientDataJSONEncoded = base64.encodeUrlSafe(
-    base64.stringToArrayBuffer(clientDataJSON)
+    base64.stringToArrayBuffer(clientDataJSON),
   );
 
   const publicKeyData = await cred.key.attestationData();
@@ -41,7 +41,7 @@ export async function createAttestationResponse(
 
   const rpIdHash = await webcrypto.subtle.digest(
     "SHA-256",
-    base64.stringToArrayBuffer(rp.id)
+    base64.stringToArrayBuffer(rp.id),
   );
 
   const flags = base64.authenticatorDataFlags(
@@ -50,7 +50,7 @@ export async function createAttestationResponse(
     auth.options.backupEligible,
     auth.options.backupState,
     true,
-    false
+    false,
   );
 
   const authDataArr = [];
@@ -62,7 +62,7 @@ export async function createAttestationResponse(
 
   const clientDataJSONHashed = await webcrypto.subtle.digest(
     "SHA-256",
-    base64.stringToArrayBuffer(clientDataJSON)
+    base64.stringToArrayBuffer(clientDataJSON),
   );
 
   const verifyDataArr = [...authDataArr];

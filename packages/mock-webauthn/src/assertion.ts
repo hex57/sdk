@@ -14,7 +14,7 @@ export async function createAssertionResponse(
   rp: RelyingParty,
   auth: Authenticator,
   cred: Credential,
-  options: AssertionOptions
+  options: AssertionOptions,
 ): Promise<string> {
   if (!options.challenge) {
     throw new Error("challenge is required");
@@ -28,12 +28,12 @@ export async function createAssertionResponse(
 
   const clientDataJSON = JSON.stringify(clientData);
   const clientDataJSONEncoded = base64.encodeUrlSafe(
-    base64.stringToArrayBuffer(clientDataJSON)
+    base64.stringToArrayBuffer(clientDataJSON),
   );
 
   const rpIdHash = await webcrypto.subtle.digest(
     "SHA-256",
-    base64.stringToArrayBuffer(rp.id)
+    base64.stringToArrayBuffer(rp.id),
   );
   const flags = base64.authenticatorDataFlags(
     !auth.options.userNotPresent,
@@ -41,7 +41,7 @@ export async function createAssertionResponse(
     auth.options.backupEligible,
     auth.options.backupState,
     true,
-    false
+    false,
   );
   const publicKeyData = await cred.key.attestationData();
 
@@ -62,7 +62,7 @@ export async function createAssertionResponse(
 
   const clientDataJSONHashed = await webcrypto.subtle.digest(
     "SHA-256",
-    base64.stringToArrayBuffer(clientDataJSON)
+    base64.stringToArrayBuffer(clientDataJSON),
   );
 
   const verifyDataArr = [...authDataArr];

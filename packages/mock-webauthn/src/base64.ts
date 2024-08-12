@@ -28,7 +28,7 @@ export function arrayBufferToString(data: ArrayBuffer): string {
 
 export function bigEndianBytes(
   value: Uint32Array[0],
-  length: number
+  length: number,
 ): Uint8Array {
   const bytes = new Uint8Array(length);
   for (let i = 0; i < length; i++) {
@@ -45,7 +45,7 @@ export function authenticatorDataFlags(
   backupEligible: boolean,
   backupState: boolean,
   attestation: boolean,
-  extensions: boolean
+  extensions: boolean,
 ): number {
   // https://www.w3.org/TR/webauthn/#flags
   let flags = 0;
