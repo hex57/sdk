@@ -1,9 +1,9 @@
 /* eslint-env node */
 
 import {
-	AccountCredentialResponseSchema,
 	AccountListResponseSchema,
 	AccountResponseSchema,
+	CredentialExtendedResponseSchema,
 	InvitationListResponseSchema,
 	InvitationResponseSchema,
 	MemberListResponseSchema,
@@ -236,7 +236,7 @@ export class Client {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(AccountCredentialResponseSchema, json);
+		const data = parse(CredentialExtendedResponseSchema, json);
 
 		return data.credential;
 	}
@@ -251,7 +251,7 @@ export class Client {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(AccountCredentialResponseSchema, json);
+		const data = parse(CredentialResponseSchema, json);
 
 		return data.credential;
 	}
@@ -270,7 +270,7 @@ export class Client {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(AccountCredentialResponseSchema, json);
+		const data = parse(CredentialExtendedResponseSchema, json);
 
 		return data.credential;
 	}
@@ -283,6 +283,7 @@ export class Client {
 			RequestMethod.DELETE,
 			`/accounts/${accountId}/credentials/${credentialId}`
 		);
+
 		return response.ok;
 	}
 

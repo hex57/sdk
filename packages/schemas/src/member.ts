@@ -3,13 +3,24 @@ import {
 	bigint,
 	coerce,
 	date,
+	merge,
 	object,
 	string,
 	type Output,
 } from "valibot";
+import { PartialAccountSchema } from "./accounts.js";
+import { BaseOrganizationSchema } from "./organization.js";
+import { BaseRoleSchema } from "./roles.js";
 
-export const MemberSchema = object({
+export const BaseMemberSchema = object({
 	id: string(),
+	flags: coerce(bigint(), (value) => {
+		if (typeof value === "string" || typeof value === "number") {
+			return BigInt(value);
+		}
+
+		return value;
+	}),
 	createdAt: coerce(date(), (value) => {
 		if (typeof value === "string" || typeof value === "number") {
 			return new Date(value);
@@ -24,26 +35,31 @@ export const MemberSchema = object({
 
 		return value;
 	}),
-
-	organizationId: string(),
-	accountId: string(),
-	flags: coerce(bigint(), (value) => {
-		if (typeof value === "string" || typeof value === "number") {
-			return BigInt(value);
-		}
-
-		return value;
-	}),
 });
 
+export const PartialMemberSchema = merge([
+	BaseMemberSchema,
+	object({
+		organizationId: string(),
+		accountId: string(),
+	}),
+]);
+
+export const MemberSchema = merge([
+	BaseMemberSchema,
+	object({
+		organization: BaseOrganizationSchema,
+		account: PartialAccountSchema,
+		roles: array(BaseRoleSchema),
+	}),
+]);
+
+export type PartialMember = Output<typeof PartialMemberSchema>;
 export type Member = Output<typeof MemberSchema>;
 
-export const MemberResponseSchema = object({
+export const PartialMemberResponse = object({
+	member: PartialMemberSchema,
+});
+export const MemberResponse = object({
 	member: MemberSchema,
 });
-export type MemberResponse = Output<typeof MemberResponseSchema>;
-
-export const MemberListResponseSchema = object({
-	members: array(MemberSchema),
-});
-export type MemberListResponse = Output<typeof MemberListResponseSchema>;

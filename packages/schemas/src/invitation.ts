@@ -1,16 +1,25 @@
 import {
-	array,
 	bigint,
 	coerce,
 	date,
+	merge,
 	object,
 	picklist,
 	string,
 	type Output,
 } from "valibot";
+import { BaseAccountSchema } from "./accounts.js";
+import { BaseOrganizationSchema } from "./organization.js";
 
-export const InvitationSchema = object({
-	id: string(),
+export const BaseInvitationSchema = object({
+	status: picklist(["pending", "accepted", "declined", "blocked"]),
+	flags: coerce(bigint(), (value) => {
+		if (typeof value === "string" || typeof value === "number") {
+			return BigInt(value);
+		}
+
+		return value;
+	}),
 	createdAt: coerce(date(), (value) => {
 		if (typeof value === "string" || typeof value === "number") {
 			return new Date(value);
@@ -25,29 +34,30 @@ export const InvitationSchema = object({
 
 		return value;
 	}),
-
-	organizationId: string(),
-	accountId: string(),
-	status: picklist(["pending", "accepted", "declined", "blocked"]),
-	flags: coerce(bigint(), (value) => {
-		if (typeof value === "string" || typeof value === "number") {
-			return BigInt(value);
-		}
-
-		return value;
-	}),
 });
 
+export const PartialInvitationSchema = merge([
+	BaseInvitationSchema,
+	object({
+		accountId: string(),
+		organizationId: string(),
+	}),
+]);
+
+export const InvitationSchema = merge([
+	BaseInvitationSchema,
+	object({
+		account: BaseAccountSchema,
+		organization: BaseOrganizationSchema,
+	}),
+]);
+
+export type PartialInvitation = Output<typeof PartialInvitationSchema>;
 export type Invitation = Output<typeof InvitationSchema>;
 
-export const InvitationResponseSchema = object({
+export const PartialInvitationResponse = object({
+	invitation: PartialInvitationSchema,
+});
+export const InvitationResponse = object({
 	invitation: InvitationSchema,
 });
-export type InvitationResponse = Output<typeof InvitationResponseSchema>;
-
-export const InvitationListResponseSchema = object({
-	invitations: array(InvitationSchema),
-});
-export type InvitationListResponse = Output<
-	typeof InvitationListResponseSchema
->;
