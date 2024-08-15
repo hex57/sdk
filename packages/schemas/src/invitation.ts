@@ -5,6 +5,7 @@ import {
 	merge,
 	object,
 	picklist,
+	record,
 	string,
 	type Output,
 } from "valibot";
@@ -60,4 +61,8 @@ export const PartialInvitationResponse = object({
 });
 export const InvitationResponse = object({
 	invitation: InvitationSchema,
+});
+
+export const InvitationListResponse = object({
+	invitations: record(string(), PartialInvitationSchema),
 });

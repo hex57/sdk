@@ -4,6 +4,7 @@ import {
 	date,
 	merge,
 	object,
+	record,
 	string,
 	type Output,
 } from "valibot";
@@ -55,4 +56,8 @@ export const PartialOrganizationResponse = object({
 });
 export const OrganizationResponse = object({
 	organization: OrganizationSchema,
+});
+
+export const OrganizationListResponse = object({
+	organizations: record(string(), PartialOrganizationSchema),
 });

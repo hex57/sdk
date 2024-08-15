@@ -5,6 +5,7 @@ import {
 	nullable,
 	number,
 	object,
+	record,
 	string,
 	type Output,
 } from "valibot";
@@ -53,4 +54,8 @@ export const PartialCredentialResponse = object({
 });
 export const CredentialResponse = object({
 	credential: CredentialSchema,
+});
+
+export const CredentialListResponse = object({
+	credentials: record(string(), PartialCredentialSchema),
 });

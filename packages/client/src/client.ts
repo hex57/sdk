@@ -1,22 +1,29 @@
 /* eslint-env node */
 
 import {
-	AccountListResponseSchema,
-	AccountResponseSchema,
-	CredentialExtendedResponseSchema,
-	InvitationListResponseSchema,
-	InvitationResponseSchema,
-	MemberListResponseSchema,
-	MemberResponseSchema,
-	OrganizationListResponseSchema,
-	OrganizationResponseSchema,
-	RoleListResponseSchema,
-	RoleResponseSchema,
+	AccountListResponse,
+	AccountResponse,
+	CredentialListResponse,
+	CredentialResponse,
+	InvitationListResponse,
+	InvitationResponse,
+	MemberListResponse,
+	MemberResponse,
+	OrganizationListResponse,
+	OrganizationResponse,
+	RoleListResponse,
+	RoleResponse,
 	type Account,
-	type AccountCredential,
+	type Credential,
 	type Invitation,
 	type Member,
 	type Organization,
+	type PartialAccount,
+	type PartialCredential,
+	type PartialInvitation,
+	type PartialMember,
+	type PartialOrganization,
+	type PartialRole,
 	type Role,
 } from "@0x57/schemas";
 import type { BitField } from "bitflag-js";
@@ -125,7 +132,7 @@ export class Client {
 		});
 
 		const json = (await response.json()) as unknown;
-		const data = parse(AccountResponseSchema, json);
+		const data = parse(AccountResponse, json);
 		return data.account;
 	}
 
@@ -139,7 +146,7 @@ export class Client {
 		});
 
 		const json = (await response.json()) as unknown;
-		const data = parse(AccountResponseSchema, json);
+		const data = parse(AccountResponse, json);
 
 		return data.account;
 	}
@@ -150,14 +157,14 @@ export class Client {
 		limit?: number;
 		before?: string;
 		after?: string;
-	}): Promise<Account[]> {
+	}): Promise<Record<string, PartialAccount>> {
 		const response = await this.request(
 			RequestMethod.GET,
 			getURLwithSearchParams(`/accounts`, getCoercedSearchParams(pagination))
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(AccountListResponseSchema, json);
+		const data = parse(AccountListResponse, json);
 
 		return data.accounts;
 	}
@@ -169,7 +176,7 @@ export class Client {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(AccountResponseSchema, json);
+		const data = parse(AccountResponse, json);
 
 		return data.account;
 	}
@@ -202,7 +209,7 @@ export class Client {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(AccountResponseSchema, json);
+		const data = parse(AccountResponse, json);
 
 		return data.account;
 	}
@@ -217,6 +224,18 @@ export class Client {
 
 	// #region Credentials
 
+	async listCredentials(): Promise<Record<string, PartialCredential>> {
+		const response = await this.request(
+			RequestMethod.GET,
+			"/accounts/credentials"
+		);
+
+		const json = (await response.json()) as unknown;
+		const data = parse(CredentialListResponse, json);
+
+		return data.credentials;
+	}
+
 	async createCredential(
 		accountId: string,
 		{
@@ -224,7 +243,7 @@ export class Client {
 			credential,
 			name,
 		}: { challenge: string; credential: string; name?: string }
-	): Promise<AccountCredential> {
+	): Promise<Credential> {
 		const response = await this.request(
 			RequestMethod.POST,
 			`/accounts/${accountId}/credentials`,
@@ -236,7 +255,7 @@ export class Client {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(CredentialExtendedResponseSchema, json);
+		const data = parse(CredentialResponse, json);
 
 		return data.credential;
 	}
@@ -244,14 +263,14 @@ export class Client {
 	async getCredential(
 		accountId: string,
 		credentialId: string
-	): Promise<AccountCredential> {
+	): Promise<Credential> {
 		const response = await this.request(
 			RequestMethod.GET,
 			`/accounts/${accountId}/credentials/${credentialId}`
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(CredentialResponseSchema, json);
+		const data = parse(CredentialResponse, json);
 
 		return data.credential;
 	}
@@ -260,7 +279,7 @@ export class Client {
 		accountId: string,
 		credentialId: string,
 		{ name }: { name?: string | null }
-	): Promise<AccountCredential> {
+	): Promise<Credential> {
 		const response = await this.request(
 			RequestMethod.PATCH,
 			`/accounts/${accountId}/credentials/${credentialId}`,
@@ -270,7 +289,7 @@ export class Client {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(CredentialExtendedResponseSchema, json);
+		const data = parse(CredentialResponse, json);
 
 		return data.credential;
 	}
@@ -293,7 +312,7 @@ export class Client {
 		limit?: number;
 		before?: string;
 		after?: string;
-	}): Promise<Organization[]> {
+	}): Promise<Record<string, PartialOrganization>> {
 		const response = await this.request(
 			RequestMethod.GET,
 			getURLwithSearchParams(
@@ -303,7 +322,7 @@ export class Client {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(OrganizationListResponseSchema, json);
+		const data = parse(OrganizationListResponse, json);
 
 		return data.organizations;
 	}
@@ -320,7 +339,7 @@ export class Client {
 		});
 
 		const json = (await response.json()) as unknown;
-		const data = parse(OrganizationResponseSchema, json);
+		const data = parse(OrganizationResponse, json);
 
 		return data.organization;
 	}
@@ -332,7 +351,7 @@ export class Client {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(OrganizationResponseSchema, json);
+		const data = parse(OrganizationResponse, json);
 
 		return data.organization;
 	}
@@ -351,7 +370,7 @@ export class Client {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(OrganizationResponseSchema, json);
+		const data = parse(OrganizationResponse, json);
 
 		return data.organization;
 	}
@@ -365,6 +384,19 @@ export class Client {
 	}
 
 	// #region Roles
+	async listRoles(
+		organizationId: string
+	): Promise<Record<string, PartialRole>> {
+		const response = await this.request(
+			RequestMethod.GET,
+			`/organizations/${organizationId}/roles`
+		);
+
+		const json = (await response.json()) as unknown;
+		const data = parse(RoleListResponse, json);
+
+		return data.roles;
+	}
 
 	async createRole(
 		organizationId: string,
@@ -372,7 +404,7 @@ export class Client {
 			name: string;
 			permissions: BitField | bigint;
 		}
-	) {
+	): Promise<Role> {
 		const response = await this.request(
 			RequestMethod.POST,
 			`/organizations/${organizationId}/roles`,
@@ -383,7 +415,7 @@ export class Client {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(RoleResponseSchema, json);
+		const data = parse(RoleResponse, json);
 
 		return data.role;
 	}
@@ -395,7 +427,7 @@ export class Client {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(RoleResponseSchema, json);
+		const data = parse(RoleResponse, json);
 
 		return data.role;
 	}
@@ -420,7 +452,7 @@ export class Client {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(RoleResponseSchema, json);
+		const data = parse(RoleResponse, json);
 
 		return data.role;
 	}
@@ -442,7 +474,7 @@ export class Client {
 			before?: string;
 			after?: string;
 		}
-	): Promise<Invitation[]> {
+	): Promise<Record<string, PartialInvitation>> {
 		const response = await this.request(
 			RequestMethod.GET,
 			getURLwithSearchParams(
@@ -452,7 +484,7 @@ export class Client {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(InvitationListResponseSchema, json);
+		const data = parse(InvitationListResponse, json);
 
 		return data.invitations;
 	}
@@ -477,7 +509,7 @@ export class Client {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(InvitationResponseSchema, json);
+		const data = parse(InvitationResponse, json);
 
 		return data.invitation;
 	}
@@ -492,7 +524,7 @@ export class Client {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(InvitationResponseSchema, json);
+		const data = parse(InvitationResponse, json);
 
 		return data.invitation;
 	}
@@ -517,7 +549,7 @@ export class Client {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(InvitationResponseSchema, json);
+		const data = parse(InvitationResponse, json);
 
 		return data.invitation;
 	}
@@ -542,7 +574,7 @@ export class Client {
 			before?: string;
 			after?: string;
 		}
-	): Promise<Member[]> {
+	): Promise<Record<string, PartialMember>> {
 		const response = await this.request(
 			RequestMethod.GET,
 			getURLwithSearchParams(
@@ -552,7 +584,7 @@ export class Client {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(MemberListResponseSchema, json);
+		const data = parse(MemberListResponse, json);
 
 		return data.members;
 	}
@@ -575,7 +607,7 @@ export class Client {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(MemberResponseSchema, json);
+		const data = parse(MemberResponse, json);
 
 		return data.member;
 	}
@@ -587,17 +619,17 @@ export class Client {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(MemberResponseSchema, json);
+		const data = parse(MemberResponse, json);
 
 		return data.member;
 	}
 
-	// TODO: Permissions?
 	async updateMember(
 		organizationId: string,
 		accountId: string,
 		parameters: {
 			flags?: BitField | bigint;
+			permissions?: BitField | bigint;
 		}
 	): Promise<Member> {
 		const response = await this.request(
@@ -611,7 +643,7 @@ export class Client {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(MemberResponseSchema, json);
+		const data = parse(MemberResponse, json);
 
 		return data.member;
 	}
@@ -637,7 +669,7 @@ export class Client {
 			before?: string;
 			after?: string;
 		}
-	): Promise<Role[]> {
+	): Promise<Record<string, PartialRole>> {
 		const response = await this.request(
 			RequestMethod.GET,
 			getURLwithSearchParams(
@@ -647,7 +679,7 @@ export class Client {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(RoleListResponseSchema, json);
+		const data = parse(RoleListResponse, json);
 
 		return data.roles;
 	}
@@ -663,7 +695,7 @@ export class Client {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(MemberResponseSchema, json);
+		const data = parse(MemberResponse, json);
 
 		return data.member;
 	}

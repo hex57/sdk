@@ -6,6 +6,7 @@ import {
 	merge,
 	nullable,
 	object,
+	record,
 	string,
 	type Output,
 } from "valibot";
@@ -58,10 +59,14 @@ export const AccountSchema = merge([
 	}),
 ]);
 
-export type PartalAccount = Output<typeof PartialAccountSchema>;
+export type PartialAccount = Output<typeof PartialAccountSchema>;
 export type Account = Output<typeof AccountSchema>;
 
 export const PartialAccountResponse = object({ account: PartialAccountSchema });
 export const AccountResponse = object({
 	account: AccountSchema,
+});
+
+export const AccountListResponse = object({
+	accounts: record(string(), PartialAccountSchema),
 });

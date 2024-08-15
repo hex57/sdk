@@ -5,6 +5,7 @@ import {
 	date,
 	merge,
 	object,
+	record,
 	string,
 	type Output,
 } from "valibot";
@@ -62,4 +63,8 @@ export const PartialMemberResponse = object({
 });
 export const MemberResponse = object({
 	member: MemberSchema,
+});
+
+export const MemberListResponse = object({
+	members: record(string(), PartialMemberSchema),
 });

@@ -4,6 +4,7 @@ import {
 	date,
 	merge,
 	object,
+	record,
 	string,
 	type Output,
 } from "valibot";
@@ -57,4 +58,8 @@ export const PartialRoleResponse = object({
 });
 export const RoleResponse = object({
 	role: RoleSchema,
+});
+
+export const RoleListResponse = object({
+	roles: record(string(), PartialRoleSchema),
 });
