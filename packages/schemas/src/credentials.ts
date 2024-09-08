@@ -1,17 +1,18 @@
 import {
-	array,
 	coerce,
 	date,
+	merge,
 	nullable,
 	number,
 	object,
+	record,
 	string,
 	type Output,
 } from "valibot";
+import { BaseAccountSchema } from "./accounts.js";
 
-export const AccountCredentialSchema = object({
+export const BaseCredentialSchema = object({
 	id: string(),
-	accountId: string(),
 	name: nullable(string()),
 	signCount: number(),
 
@@ -31,18 +32,30 @@ export const AccountCredentialSchema = object({
 	}),
 });
 
-export type AccountCredential = Output<typeof AccountCredentialSchema>;
+export const PartialCredentialSchema = merge([
+	BaseCredentialSchema,
+	object({
+		accountId: string(),
+	}),
+]);
 
-export const AccountCredentialResponseSchema = object({
-	credential: AccountCredentialSchema,
-});
-export type AccountCredentialResponse = Output<
-	typeof AccountCredentialResponseSchema
->;
+export const CredentialSchema = merge([
+	BaseCredentialSchema,
+	object({
+		account: BaseAccountSchema,
+	}),
+]);
 
-export const AccountCredentialListResponseSchema = object({
-	credentials: array(AccountCredentialSchema),
+export type PartialCredential = Output<typeof PartialCredentialSchema>;
+export type Credential = Output<typeof CredentialSchema>;
+
+export const PartialCredentialResponse = object({
+	credential: PartialCredentialSchema,
 });
-export type AccountCredentialListResponse = Output<
-	typeof AccountCredentialListResponseSchema
->;
+export const CredentialResponse = object({
+	credential: CredentialSchema,
+});
+
+export const CredentialListResponse = object({
+	credentials: record(string(), PartialCredentialSchema),
+});

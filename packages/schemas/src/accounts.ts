@@ -3,15 +3,19 @@ import {
 	bigint,
 	coerce,
 	date,
+	merge,
 	nullable,
 	object,
+	record,
 	string,
 	type Output,
 } from "valibot";
-import { AccountCredentialSchema } from "./credentials.js";
-import { RoleSchema } from "./roles.js";
+import { BaseCredentialSchema } from "./credentials.js";
+import { BaseEnvironmentSchema } from "./environment.js";
+import { BaseInvitationSchema } from "./invitation.js";
+import { BaseMemberSchema } from "./member.js";
 
-export const AccountSchema = object({
+export const BaseAccountSchema = object({
 	id: string(),
 	createdAt: coerce(date(), (value) => {
 		if (typeof value === "string" || typeof value === "number") {
@@ -27,8 +31,6 @@ export const AccountSchema = object({
 
 		return value;
 	}),
-	workspaceId: string(),
-	environmentId: string(),
 	email: nullable(string()),
 	username: nullable(string()),
 	flags: coerce(bigint(), (value) => {
@@ -38,25 +40,33 @@ export const AccountSchema = object({
 
 		return value;
 	}),
-	permissions: coerce(bigint(), (value) => {
-		if (typeof value === "string" || typeof value === "number") {
-			return BigInt(value);
-		}
-
-		return value;
-	}),
-	roles: array(RoleSchema),
-	credentials: array(AccountCredentialSchema),
 });
 
+export const PartialAccountSchema = merge([
+	BaseAccountSchema,
+	object({
+		environmentId: string(),
+	}),
+]);
+
+export const AccountSchema = merge([
+	BaseAccountSchema,
+	object({
+		environment: BaseEnvironmentSchema,
+		credentials: array(BaseCredentialSchema),
+		memberships: array(BaseMemberSchema),
+		invitations: array(BaseInvitationSchema),
+	}),
+]);
+
+export type PartialAccount = Output<typeof PartialAccountSchema>;
 export type Account = Output<typeof AccountSchema>;
 
-export const AccountResponseSchema = object({
+export const PartialAccountResponse = object({ account: PartialAccountSchema });
+export const AccountResponse = object({
 	account: AccountSchema,
 });
-export type AccountResponse = Output<typeof AccountResponseSchema>;
 
-export const AccountListResponseSchema = object({
-	accounts: array(AccountSchema),
+export const AccountListResponse = object({
+	accounts: record(string(), PartialAccountSchema),
 });
-export type AccountListResponse = Output<typeof AccountListResponseSchema>;
