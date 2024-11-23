@@ -17,6 +17,7 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
+		"bitflag-js": "*",
 		"valibot": "1.0.0-beta.8"
 	}
 }

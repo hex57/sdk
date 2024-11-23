@@ -191,8 +191,8 @@ export class Client {
 		}: {
 			email?: string | null;
 			username?: string | null;
-			flags?: BitField | bigint;
-			permissions?: BitField | bigint;
+			flags?: BitField;
+			permissions?: BitField;
 		},
 	): Promise<Account> {
 		const response = await this.request(
@@ -329,7 +329,7 @@ export class Client {
 
 	async createOrganization(parameters: {
 		name: string;
-		flags?: BitField | bigint;
+		flags?: BitField;
 	}): Promise<Organization> {
 		const response = await this.request(RequestMethod.POST, `/organizations`, {
 			name: parameters.name,
@@ -358,7 +358,7 @@ export class Client {
 
 	async updateOrganization(
 		organizationId: string,
-		{ name, flags }: { name?: string; flags?: BitField | bigint },
+		{ name, flags }: { name?: string; flags?: BitField },
 	): Promise<Organization> {
 		const response = await this.request(
 			RequestMethod.PATCH,
@@ -402,7 +402,7 @@ export class Client {
 		organizationId: string,
 		parameters: {
 			name: string;
-			permissions: BitField | bigint;
+			permissions: BitField;
 		},
 	): Promise<Role> {
 		const response = await this.request(
@@ -437,7 +437,7 @@ export class Client {
 		roleId: string,
 		parameters: {
 			name?: string;
-			permissions?: BitField | bigint;
+			permissions?: BitField;
 		},
 	): Promise<Role> {
 		const response = await this.request(
@@ -494,7 +494,7 @@ export class Client {
 		accountId: string,
 		parameters?: {
 			status?: "pending" | "accepted" | "declined" | "blocked";
-			flags?: BitField | bigint;
+			flags?: BitField;
 		},
 	): Promise<Invitation> {
 		const response = await this.request(
@@ -534,7 +534,7 @@ export class Client {
 		accountId: string,
 		parameters: {
 			status?: "pending" | "accepted" | "declined" | "blocked";
-			flags?: BitField | bigint;
+			flags?: BitField;
 		},
 	): Promise<Invitation> {
 		const response = await this.request(
@@ -593,7 +593,7 @@ export class Client {
 		organizationId: string,
 		accountId: string,
 		parameters?: {
-			flags?: BitField | bigint;
+			flags?: BitField;
 		},
 	): Promise<Member> {
 		const response = await this.request(
@@ -628,8 +628,8 @@ export class Client {
 		organizationId: string,
 		accountId: string,
 		parameters: {
-			flags?: BitField | bigint;
-			permissions?: BitField | bigint;
+			flags?: BitField;
+			permissions?: BitField;
 		},
 	): Promise<Member> {
 		const response = await this.request(

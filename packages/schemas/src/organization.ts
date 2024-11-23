@@ -1,55 +1,30 @@
-import {
-	bigint,
-	coerce,
-	date,
-	merge,
-	object,
-	record,
-	string,
-	type Output,
-} from "valibot";
+import { InferOutput, object, record, string } from "valibot";
+import { coercedBitfield } from "./coerce/bitfield.js";
+import { coercedDate } from "./coerce/date.js";
 import { BaseEnvironmentSchema } from "./environment.js";
 
 export const BaseOrganizationSchema = object({
 	id: string(),
 	name: string(),
-	flags: coerce(bigint(), (value) => {
-		if (typeof value === "string" || typeof value === "number") {
-			return BigInt(value);
-		}
-
-		return value;
-	}),
-	createdAt: coerce(date(), (value) => {
-		if (typeof value === "string" || typeof value === "number") {
-			return new Date(value);
-		}
-
-		return value;
-	}),
-	updatedAt: coerce(date(), (value) => {
-		if (typeof value === "string" || typeof value === "number") {
-			return new Date(value);
-		}
-
-		return value;
-	}),
+	flags: coercedBitfield,
+	createdAt: coercedDate,
+	updatedAt: coercedDate,
 });
 
-export const PartialOrganizationSchema = merge([
-	BaseOrganizationSchema,
-	object({
+export const PartialOrganizationSchema = object({
+	...BaseOrganizationSchema.entries,
+	...object({
 		environmentId: string(),
-	}),
-]);
+	}).entries,
+});
 
-export const OrganizationSchema = merge([
-	BaseOrganizationSchema,
-	object({ environment: BaseEnvironmentSchema }),
-]);
+export const OrganizationSchema = object({
+	...BaseOrganizationSchema.entries,
+	...object({ environment: BaseEnvironmentSchema }).entries,
+});
 
-export type PartialOrganization = Output<typeof PartialOrganizationSchema>;
-export type Organization = Output<typeof OrganizationSchema>;
+export type PartialOrganization = InferOutput<typeof PartialOrganizationSchema>;
+export type Organization = InferOutput<typeof OrganizationSchema>;
 
 export const PartialOrganizationResponse = object({
 	organization: PartialOrganizationSchema,

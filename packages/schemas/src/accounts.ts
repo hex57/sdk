@@ -1,15 +1,6 @@
-import {
-	array,
-	bigint,
-	coerce,
-	date,
-	merge,
-	nullable,
-	object,
-	record,
-	string,
-	type Output,
-} from "valibot";
+import { array, InferOutput, nullable, object, record, string } from "valibot";
+import { coercedBitfield } from "./coerce/bitfield.js";
+import { coercedDate } from "./coerce/date.js";
 import { BaseCredentialSchema } from "./credentials.js";
 import { BaseEnvironmentSchema } from "./environment.js";
 import { BaseInvitationSchema } from "./invitation.js";
@@ -17,50 +8,32 @@ import { BaseMemberSchema } from "./member.js";
 
 export const BaseAccountSchema = object({
 	id: string(),
-	createdAt: coerce(date(), (value) => {
-		if (typeof value === "string" || typeof value === "number") {
-			return new Date(value);
-		}
-
-		return value;
-	}),
-	updatedAt: coerce(date(), (value) => {
-		if (typeof value === "string" || typeof value === "number") {
-			return new Date(value);
-		}
-
-		return value;
-	}),
+	createdAt: coercedDate,
+	updatedAt: coercedDate,
 	email: nullable(string()),
 	username: nullable(string()),
-	flags: coerce(bigint(), (value) => {
-		if (typeof value === "string" || typeof value === "number") {
-			return BigInt(value);
-		}
-
-		return value;
-	}),
+	flags: coercedBitfield,
 });
 
-export const PartialAccountSchema = merge([
-	BaseAccountSchema,
-	object({
+export const PartialAccountSchema = object({
+	...BaseAccountSchema.entries,
+	...object({
 		environmentId: string(),
-	}),
-]);
+	}).entries,
+});
 
-export const AccountSchema = merge([
-	BaseAccountSchema,
-	object({
+export const AccountSchema = object({
+	...BaseAccountSchema.entries,
+	...object({
 		environment: BaseEnvironmentSchema,
 		credentials: array(BaseCredentialSchema),
 		memberships: array(BaseMemberSchema),
 		invitations: array(BaseInvitationSchema),
-	}),
-]);
+	}).entries,
+});
 
-export type PartialAccount = Output<typeof PartialAccountSchema>;
-export type Account = Output<typeof AccountSchema>;
+export type PartialAccount = InferOutput<typeof PartialAccountSchema>;
+export type Account = InferOutput<typeof AccountSchema>;
 
 export const PartialAccountResponse = object({ account: PartialAccountSchema });
 export const AccountResponse = object({

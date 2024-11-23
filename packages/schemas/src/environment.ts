@@ -1,42 +1,31 @@
-import { coerce, date, merge, object, string, type Output } from "valibot";
+import { InferOutput, object, string } from "valibot";
+import { coercedDate } from "./coerce/date.js";
 
 export const BaseEnvironmentSchema = object({
 	id: string(),
 	name: string(),
 	origin: string(),
 	rpid: string(),
-	createdAt: coerce(date(), (value) => {
-		if (typeof value === "string" || typeof value === "number") {
-			return new Date(value);
-		}
-
-		return value;
-	}),
-	updatedAt: coerce(date(), (value) => {
-		if (typeof value === "string" || typeof value === "number") {
-			return new Date(value);
-		}
-
-		return value;
-	}),
+	createdAt: coercedDate,
+	updatedAt: coercedDate,
 });
 
-export const PartialEnvironmentSchema = merge([
-	BaseEnvironmentSchema,
-	object({
+export const PartialEnvironmentSchema = object({
+	...BaseEnvironmentSchema.entries,
+	...object({
 		workspaceId: string(),
-	}),
-]);
+	}).entries,
+});
 
-export const EnvironmentSchema = merge([
-	BaseEnvironmentSchema,
-	object({
+export const EnvironmentSchema = object({
+	...BaseEnvironmentSchema.entries,
+	...object({
 		// workspace: BaseWorkspaceSchema,
-	}),
-]);
+	}).entries,
+});
 
-export type PartalEnvironment = Output<typeof PartialEnvironmentSchema>;
-export type Environment = Output<typeof EnvironmentSchema>;
+export type PartalEnvironment = InferOutput<typeof PartialEnvironmentSchema>;
+export type Environment = InferOutput<typeof EnvironmentSchema>;
 
 export const PartialEnvironmentResponse = object({
 	environment: PartialEnvironmentSchema,

@@ -1,53 +1,32 @@
-import {
-	coerce,
-	date,
-	merge,
-	nullable,
-	number,
-	object,
-	record,
-	string,
-	type Output,
-} from "valibot";
+import { InferOutput, nullable, number, object, record, string } from "valibot";
 import { BaseAccountSchema } from "./accounts.js";
+import { coercedDate } from "./coerce/date.js";
 
 export const BaseCredentialSchema = object({
 	id: string(),
 	name: nullable(string()),
 	signCount: number(),
 
-	createdAt: coerce(date(), (value) => {
-		if (typeof value === "string" || typeof value === "number") {
-			return new Date(value);
-		}
-
-		return value;
-	}),
-	updatedAt: coerce(date(), (value) => {
-		if (typeof value === "string" || typeof value === "number") {
-			return new Date(value);
-		}
-
-		return value;
-	}),
+	createdAt: coercedDate,
+	updatedAt: coercedDate,
 });
 
-export const PartialCredentialSchema = merge([
-	BaseCredentialSchema,
-	object({
+export const PartialCredentialSchema = object({
+	...BaseCredentialSchema.entries,
+	...object({
 		accountId: string(),
-	}),
-]);
+	}).entries,
+});
 
-export const CredentialSchema = merge([
-	BaseCredentialSchema,
-	object({
+export const CredentialSchema = object({
+	...BaseCredentialSchema.entries,
+	...object({
 		account: BaseAccountSchema,
-	}),
-]);
+	}).entries,
+});
 
-export type PartialCredential = Output<typeof PartialCredentialSchema>;
-export type Credential = Output<typeof CredentialSchema>;
+export type PartialCredential = InferOutput<typeof PartialCredentialSchema>;
+export type Credential = InferOutput<typeof CredentialSchema>;
 
 export const PartialCredentialResponse = object({
 	credential: PartialCredentialSchema,
