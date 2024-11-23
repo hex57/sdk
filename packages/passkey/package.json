@@ -11,10 +11,10 @@
 	"scripts": {
 		"build": "tsup",
 		"clean": "rimraf dist .turbo",
-		"prettier": "prettier src/**/*.ts --check",
-		"typecheck": "tsc --noEmit",
 		"lint": "eslint . --max-warnings 0",
-		"prepublish": "npm run clean && npm run build"
+		"prettier": "prettier src/**/*.ts --check",
+		"prepublish": "npm run clean && npm run build",
+		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
 		"@0x57/client": "*",
@@ -22,6 +22,6 @@
 		"@0x57/schemas": "*",
 		"@github/webauthn-json": "^2.1.1",
 		"bitflag-js": "*",
-		"valibot": "^0.29.0"
+		"valibot": "1.0.0-beta.8"
 	}
 }
