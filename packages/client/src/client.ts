@@ -60,7 +60,7 @@ export class Client {
 			apiVersion = APIVersion.ALPHA,
 			apiBase = "https://www.0x57.dev/api",
 			fetch = globalThis.fetch,
-		}: RestClientOptions
+		}: RestClientOptions,
 	) {
 		this.#key = key;
 		this.#apiUrl = `${apiBase}/${apiVersion}`;
@@ -84,13 +84,13 @@ export class Client {
 	async request<T>(
 		method: RequestMethod,
 		url: string,
-		body?: Record<string, unknown>
+		body?: Record<string, unknown>,
 	) {
 		const options: RequestInit = {
 			headers: {
 				"Content-Type": "application/json",
-				Accept: "application/json",
-				Authorization: this.#key,
+				"Accept": "application/json",
+				"Authorization": this.#key,
 			},
 			method,
 		};
@@ -160,7 +160,7 @@ export class Client {
 	}): Promise<Record<string, PartialAccount>> {
 		const response = await this.request(
 			RequestMethod.GET,
-			getURLwithSearchParams(`/accounts`, getCoercedSearchParams(pagination))
+			getURLwithSearchParams(`/accounts`, getCoercedSearchParams(pagination)),
 		);
 
 		const json = (await response.json()) as unknown;
@@ -172,7 +172,7 @@ export class Client {
 	async getAccount(accountId: string): Promise<Account> {
 		const response = await this.request(
 			RequestMethod.GET,
-			`/accounts/${accountId}`
+			`/accounts/${accountId}`,
 		);
 
 		const json = (await response.json()) as unknown;
@@ -193,7 +193,7 @@ export class Client {
 			username?: string | null;
 			flags?: BitField | bigint;
 			permissions?: BitField | bigint;
-		}
+		},
 	): Promise<Account> {
 		const response = await this.request(
 			RequestMethod.PATCH,
@@ -205,7 +205,7 @@ export class Client {
 					? { permissions: permissions.toString() }
 					: {}),
 				...(flags !== undefined ? { flags: flags.toString() } : {}),
-			}
+			},
 		);
 
 		const json = (await response.json()) as unknown;
@@ -217,7 +217,7 @@ export class Client {
 	async deleteAccount(accountId: string): Promise<boolean> {
 		const response = await this.request(
 			RequestMethod.DELETE,
-			`/accounts/${accountId}`
+			`/accounts/${accountId}`,
 		);
 		return response.ok;
 	}
@@ -227,7 +227,7 @@ export class Client {
 	async listCredentials(): Promise<Record<string, PartialCredential>> {
 		const response = await this.request(
 			RequestMethod.GET,
-			"/accounts/credentials"
+			"/accounts/credentials",
 		);
 
 		const json = (await response.json()) as unknown;
@@ -242,7 +242,7 @@ export class Client {
 			challenge,
 			credential,
 			name,
-		}: { challenge: string; credential: string; name?: string }
+		}: { challenge: string; credential: string; name?: string },
 	): Promise<Credential> {
 		const response = await this.request(
 			RequestMethod.POST,
@@ -251,7 +251,7 @@ export class Client {
 				challenge,
 				credential,
 				name,
-			}
+			},
 		);
 
 		const json = (await response.json()) as unknown;
@@ -262,11 +262,11 @@ export class Client {
 
 	async getCredential(
 		accountId: string,
-		credentialId: string
+		credentialId: string,
 	): Promise<Credential> {
 		const response = await this.request(
 			RequestMethod.GET,
-			`/accounts/${accountId}/credentials/${credentialId}`
+			`/accounts/${accountId}/credentials/${credentialId}`,
 		);
 
 		const json = (await response.json()) as unknown;
@@ -278,14 +278,14 @@ export class Client {
 	async updateCredential(
 		accountId: string,
 		credentialId: string,
-		{ name }: { name?: string | null }
+		{ name }: { name?: string | null },
 	): Promise<Credential> {
 		const response = await this.request(
 			RequestMethod.PATCH,
 			`/accounts/${accountId}/credentials/${credentialId}`,
 			{
 				...(name !== undefined ? { name } : {}),
-			}
+			},
 		);
 
 		const json = (await response.json()) as unknown;
@@ -296,11 +296,11 @@ export class Client {
 
 	async deleteCredential(
 		accountId: string,
-		credentialId: string
+		credentialId: string,
 	): Promise<boolean> {
 		const response = await this.request(
 			RequestMethod.DELETE,
-			`/accounts/${accountId}/credentials/${credentialId}`
+			`/accounts/${accountId}/credentials/${credentialId}`,
 		);
 
 		return response.ok;
@@ -317,8 +317,8 @@ export class Client {
 			RequestMethod.GET,
 			getURLwithSearchParams(
 				`/organizations`,
-				getCoercedSearchParams(pagination)
-			)
+				getCoercedSearchParams(pagination),
+			),
 		);
 
 		const json = (await response.json()) as unknown;
@@ -347,7 +347,7 @@ export class Client {
 	async getOrganization(organizationId: string): Promise<Organization> {
 		const response = await this.request(
 			RequestMethod.GET,
-			`/organizations/${organizationId}`
+			`/organizations/${organizationId}`,
 		);
 
 		const json = (await response.json()) as unknown;
@@ -358,7 +358,7 @@ export class Client {
 
 	async updateOrganization(
 		organizationId: string,
-		{ name, flags }: { name?: string; flags?: BitField | bigint }
+		{ name, flags }: { name?: string; flags?: BitField | bigint },
 	): Promise<Organization> {
 		const response = await this.request(
 			RequestMethod.PATCH,
@@ -366,7 +366,7 @@ export class Client {
 			{
 				...(name != null ? { name } : {}),
 				...(flags != null ? { permissions: flags.toString() } : {}),
-			}
+			},
 		);
 
 		const json = (await response.json()) as unknown;
@@ -378,18 +378,18 @@ export class Client {
 	async deleteOrganization(organizationId: string): Promise<boolean> {
 		const response = await this.request(
 			RequestMethod.DELETE,
-			`/organizations/${organizationId}`
+			`/organizations/${organizationId}`,
 		);
 		return response.ok;
 	}
 
 	// #region Roles
 	async listRoles(
-		organizationId: string
+		organizationId: string,
 	): Promise<Record<string, PartialRole>> {
 		const response = await this.request(
 			RequestMethod.GET,
-			`/organizations/${organizationId}/roles`
+			`/organizations/${organizationId}/roles`,
 		);
 
 		const json = (await response.json()) as unknown;
@@ -403,7 +403,7 @@ export class Client {
 		parameters: {
 			name: string;
 			permissions: BitField | bigint;
-		}
+		},
 	): Promise<Role> {
 		const response = await this.request(
 			RequestMethod.POST,
@@ -411,7 +411,7 @@ export class Client {
 			{
 				name: parameters.name,
 				permissions: parameters.permissions.toString(),
-			}
+			},
 		);
 
 		const json = (await response.json()) as unknown;
@@ -423,7 +423,7 @@ export class Client {
 	async getRole(organizationId: string, roleId: string): Promise<Role> {
 		const response = await this.request(
 			RequestMethod.GET,
-			`/organizations/${organizationId}/roles/${roleId}`
+			`/organizations/${organizationId}/roles/${roleId}`,
 		);
 
 		const json = (await response.json()) as unknown;
@@ -438,7 +438,7 @@ export class Client {
 		parameters: {
 			name?: string;
 			permissions?: BitField | bigint;
-		}
+		},
 	): Promise<Role> {
 		const response = await this.request(
 			RequestMethod.PATCH,
@@ -448,7 +448,7 @@ export class Client {
 				...(parameters.permissions != null
 					? { permissions: parameters.permissions.toString() }
 					: {}),
-			}
+			},
 		);
 
 		const json = (await response.json()) as unknown;
@@ -460,7 +460,7 @@ export class Client {
 	async deleteRole(organizationId: string, roleId: string): Promise<boolean> {
 		const response = await this.request(
 			RequestMethod.DELETE,
-			`/organizations/${organizationId}/roles/${roleId}`
+			`/organizations/${organizationId}/roles/${roleId}`,
 		);
 		return response.ok;
 	}
@@ -473,14 +473,14 @@ export class Client {
 			limit?: number;
 			before?: string;
 			after?: string;
-		}
+		},
 	): Promise<Record<string, PartialInvitation>> {
 		const response = await this.request(
 			RequestMethod.GET,
 			getURLwithSearchParams(
 				`/organizations/${organizationId}/invitations`,
-				getCoercedSearchParams(pagination)
-			)
+				getCoercedSearchParams(pagination),
+			),
 		);
 
 		const json = (await response.json()) as unknown;
@@ -495,7 +495,7 @@ export class Client {
 		parameters?: {
 			status?: "pending" | "accepted" | "declined" | "blocked";
 			flags?: BitField | bigint;
-		}
+		},
 	): Promise<Invitation> {
 		const response = await this.request(
 			RequestMethod.POST,
@@ -505,7 +505,7 @@ export class Client {
 				...(parameters?.flags != null
 					? { flags: parameters.flags.toString() }
 					: {}),
-			}
+			},
 		);
 
 		const json = (await response.json()) as unknown;
@@ -516,11 +516,11 @@ export class Client {
 
 	async getInvitation(
 		organizationId: string,
-		accountId: string
+		accountId: string,
 	): Promise<Invitation> {
 		const response = await this.request(
 			RequestMethod.GET,
-			`/organizations/${organizationId}/invitations/${accountId}`
+			`/organizations/${organizationId}/invitations/${accountId}`,
 		);
 
 		const json = (await response.json()) as unknown;
@@ -535,7 +535,7 @@ export class Client {
 		parameters: {
 			status?: "pending" | "accepted" | "declined" | "blocked";
 			flags?: BitField | bigint;
-		}
+		},
 	): Promise<Invitation> {
 		const response = await this.request(
 			RequestMethod.PATCH,
@@ -545,7 +545,7 @@ export class Client {
 				...(parameters.flags != null
 					? { flags: parameters.flags.toString() }
 					: {}),
-			}
+			},
 		);
 
 		const json = (await response.json()) as unknown;
@@ -556,11 +556,11 @@ export class Client {
 
 	async deleteInvitation(
 		organizationId: string,
-		accountId: string
+		accountId: string,
 	): Promise<boolean> {
 		const response = await this.request(
 			RequestMethod.DELETE,
-			`/organizations/${organizationId}/invitations/${accountId}`
+			`/organizations/${organizationId}/invitations/${accountId}`,
 		);
 		return response.ok;
 	}
@@ -573,14 +573,14 @@ export class Client {
 			limit?: number;
 			before?: string;
 			after?: string;
-		}
+		},
 	): Promise<Record<string, PartialMember>> {
 		const response = await this.request(
 			RequestMethod.GET,
 			getURLwithSearchParams(
 				`/organizations/${organizationId}/members`,
-				getCoercedSearchParams(pagination)
-			)
+				getCoercedSearchParams(pagination),
+			),
 		);
 
 		const json = (await response.json()) as unknown;
@@ -594,7 +594,7 @@ export class Client {
 		accountId: string,
 		parameters?: {
 			flags?: BitField | bigint;
-		}
+		},
 	): Promise<Member> {
 		const response = await this.request(
 			RequestMethod.POST,
@@ -603,7 +603,7 @@ export class Client {
 				...(parameters?.flags != null
 					? { flags: parameters.flags.toString() }
 					: {}),
-			}
+			},
 		);
 
 		const json = (await response.json()) as unknown;
@@ -615,7 +615,7 @@ export class Client {
 	async getMember(organizationId: string, accountId: string): Promise<Member> {
 		const response = await this.request(
 			RequestMethod.GET,
-			`/organizations/${organizationId}/members/${accountId}`
+			`/organizations/${organizationId}/members/${accountId}`,
 		);
 
 		const json = (await response.json()) as unknown;
@@ -630,7 +630,7 @@ export class Client {
 		parameters: {
 			flags?: BitField | bigint;
 			permissions?: BitField | bigint;
-		}
+		},
 	): Promise<Member> {
 		const response = await this.request(
 			RequestMethod.PATCH,
@@ -639,7 +639,7 @@ export class Client {
 				...(parameters.flags != null
 					? { flags: parameters.flags.toString() }
 					: {}),
-			}
+			},
 		);
 
 		const json = (await response.json()) as unknown;
@@ -650,11 +650,11 @@ export class Client {
 
 	async removeMember(
 		organizationId: string,
-		accountId: string
+		accountId: string,
 	): Promise<boolean> {
 		const response = await this.request(
 			RequestMethod.DELETE,
-			`/organizations/${organizationId}/members/${accountId}`
+			`/organizations/${organizationId}/members/${accountId}`,
 		);
 		return response.ok;
 	}
@@ -668,14 +668,14 @@ export class Client {
 			limit?: number;
 			before?: string;
 			after?: string;
-		}
+		},
 	): Promise<Record<string, PartialRole>> {
 		const response = await this.request(
 			RequestMethod.GET,
 			getURLwithSearchParams(
 				`/organizations/${organizationId}/members/${accountId}/roles`,
-				getCoercedSearchParams(pagination)
-			)
+				getCoercedSearchParams(pagination),
+			),
 		);
 
 		const json = (await response.json()) as unknown;
@@ -687,11 +687,11 @@ export class Client {
 	async addMemberRole(
 		organizationId: string,
 		accountId: string,
-		roleId: string
+		roleId: string,
 	): Promise<Member> {
 		const response = await this.request(
 			RequestMethod.POST,
-			`/organizations/${organizationId}/members/${accountId}/roles/${roleId}`
+			`/organizations/${organizationId}/members/${accountId}/roles/${roleId}`,
 		);
 
 		const json = (await response.json()) as unknown;
@@ -703,11 +703,11 @@ export class Client {
 	async removeMemberRole(
 		organizationId: string,
 		accountId: string,
-		roleId: string
+		roleId: string,
 	): Promise<boolean> {
 		const response = await this.request(
 			RequestMethod.DELETE,
-			`organizations/${organizationId}/members/${accountId}/roles/${roleId}`
+			`organizations/${organizationId}/members/${accountId}/roles/${roleId}`,
 		);
 		return response.ok;
 	}
