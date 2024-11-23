@@ -1,0 +1,24 @@
+{
+	"name": "@0x57/internal-client",
+	"version": "0.0.0",
+	"type": "module",
+	"exports": {
+		".": "./dist/index.js"
+	},
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"build": "tsc",
+		"clean": "rimraf dist .turbo",
+		"lint": "eslint . --max-warnings 0",
+		"prettier": "prettier src/**/*.ts --check",
+		"prepublish": "npm run clean && npm run build",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@0x57/client": "*",
+		"@0x57/interfaces": "*",
+		"@0x57/schemas": "*"
+	}
+}
