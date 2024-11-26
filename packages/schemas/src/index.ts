@@ -4,3 +4,4 @@ export * from "./invitation.js";
 export * from "./member.js";
 export * from "./organization.js";
 export * from "./roles.js";
+export * as webauthn from "./webauthn.js";

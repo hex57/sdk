@@ -31,6 +31,12 @@ import { parse } from "valibot";
 import { getErrors } from "./lib/errors.js";
 import { getCoercedSearchParams, getURLwithSearchParams } from "./lib/urls.js";
 
+export const lib = {
+	getErrors,
+	getCoercedSearchParams,
+	getURLwithSearchParams,
+};
+
 export enum RequestMethod {
 	GET = "GET",
 	POST = "POST",
@@ -49,7 +55,7 @@ export interface RestClientOptions {
 	fetch?: (url: string, options: ResponseInit) => Promise<Response>;
 }
 
-export class Client {
+export class RESTClient {
 	readonly #apiUrl: string;
 	#key: string;
 	#fetch: (url: string, options: ResponseInit) => Promise<Response>;
@@ -110,6 +116,12 @@ export class Client {
 		}
 
 		return response;
+	}
+}
+
+export class Client extends RESTClient {
+	constructor(key: string, restClientOptions: RestClientOptions) {
+		super(key, restClientOptions);
 	}
 
 	/**
