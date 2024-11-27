@@ -1,42 +1,21 @@
-import { InferOutput, object, picklist, record, string } from "valibot";
-import { BaseAccountSchema } from "./accounts.js";
-import { coercedBitfield } from "./coerce/bitfield.js";
-import { coercedDate } from "./coerce/date.js";
-import { BaseOrganizationSchema } from "./organization.js";
+import { enum_, InferOutput, object, string } from "valibot";
+import { BaseObject } from "./base.js";
 
-export const BaseInvitationSchema = object({
-	status: picklist(["pending", "accepted", "declined", "blocked"]),
-	flags: coercedBitfield,
-	createdAt: coercedDate,
-	updatedAt: coercedDate,
-});
+export enum InvitationStatus {
+	PENDING = "pending",
+	ACCEPTED = "accepted",
+	DECLINED = "declined",
+	BLOCKED = "blocked",
+}
 
-export const PartialInvitationSchema = object({
-	...BaseInvitationSchema.entries,
+export const Invitation = object({
+	...BaseObject.entries,
 	...object({
-		accountId: string(),
 		organizationId: string(),
+		accountId: string(),
+		createdBy: string(),
+		status: enum_(InvitationStatus),
 	}).entries,
 });
 
-export const InvitationSchema = object({
-	...BaseInvitationSchema.entries,
-	...object({
-		account: BaseAccountSchema,
-		organization: BaseOrganizationSchema,
-	}).entries,
-});
-
-export type PartialInvitation = InferOutput<typeof PartialInvitationSchema>;
-export type Invitation = InferOutput<typeof InvitationSchema>;
-
-export const PartialInvitationResponse = object({
-	invitation: PartialInvitationSchema,
-});
-export const InvitationResponse = object({
-	invitation: InvitationSchema,
-});
-
-export const InvitationListResponse = object({
-	invitations: record(string(), PartialInvitationSchema),
-});
+export type Invitation = InferOutput<typeof Invitation>;

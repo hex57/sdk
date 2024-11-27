@@ -1,7 +1,11 @@
-export * from "./accounts.js";
-export * from "./credentials.js";
+export * from "./account.js";
+export * from "./account_credential.js";
+export * from "./credential.js";
+export * from "./environment.js";
 export * from "./invitation.js";
 export * from "./member.js";
+export * from "./memberrole.js";
 export * from "./organization.js";
-export * from "./roles.js";
+export * from "./role.js";
 export * as webauthn from "./webauthn.js";
+export * from "./workspace.js";

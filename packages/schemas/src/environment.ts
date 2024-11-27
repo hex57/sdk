@@ -1,35 +1,15 @@
-import { InferOutput, object, string } from "valibot";
-import { coercedDate } from "./coerce/date.js";
+import { InferOutput, number, object, string } from "valibot";
+import { BaseObject } from "./base.js";
 
-export const BaseEnvironmentSchema = object({
-	id: string(),
-	name: string(),
-	origin: string(),
-	rpid: string(),
-	createdAt: coercedDate,
-	updatedAt: coercedDate,
-});
-
-export const PartialEnvironmentSchema = object({
-	...BaseEnvironmentSchema.entries,
+export const Environment = object({
+	...BaseObject.entries,
 	...object({
 		workspaceId: string(),
+		name: string(),
+		origin: string(),
+		rpid: string(),
+		accountsCount: number(),
 	}).entries,
 });
 
-export const EnvironmentSchema = object({
-	...BaseEnvironmentSchema.entries,
-	...object({
-		// workspace: BaseWorkspaceSchema,
-	}).entries,
-});
-
-export type PartalEnvironment = InferOutput<typeof PartialEnvironmentSchema>;
-export type Environment = InferOutput<typeof EnvironmentSchema>;
-
-export const PartialEnvironmentResponse = object({
-	environment: PartialEnvironmentSchema,
-});
-export const EnvironmentResponse = object({
-	environment: EnvironmentSchema,
-});
+export type Environment = InferOutput<typeof Environment>;

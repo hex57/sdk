@@ -2,12 +2,12 @@ import { InferOutput, object, string } from "valibot";
 import { BaseObject } from "./base.js";
 import { coercedBitfield } from "./coerce/bitfield.js";
 
-export const Organization = object({
+export const Role = object({
 	...BaseObject.entries,
 	...object({
-		environmentId: string(),
-		flags: coercedBitfield,
+		organizationId: string(),
+		permissions: coercedBitfield,
 	}).entries,
 });
 
-export type Organization = InferOutput<typeof Organization>;
+export type Role = InferOutput<typeof Role>;

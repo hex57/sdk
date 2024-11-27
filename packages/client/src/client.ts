@@ -1,33 +1,16 @@
 /* eslint-env node */
 
 import {
-	AccountListResponse,
-	AccountResponse,
-	CredentialListResponse,
-	CredentialResponse,
-	InvitationListResponse,
-	InvitationResponse,
-	MemberListResponse,
-	MemberResponse,
-	OrganizationListResponse,
-	OrganizationResponse,
-	RoleListResponse,
-	RoleResponse,
-	type Account,
-	type Credential,
-	type Invitation,
-	type Member,
-	type Organization,
-	type PartialAccount,
-	type PartialCredential,
-	type PartialInvitation,
-	type PartialMember,
-	type PartialOrganization,
-	type PartialRole,
-	type Role,
+	Account,
+	Credential,
+	Invitation,
+	Member,
+	MemberRole,
+	Organization,
+	Role,
 } from "@0x57/schemas";
 import type { BitField } from "bitflag-js";
-import { parse } from "valibot";
+import { array, object, parse } from "valibot";
 import { getErrors } from "./lib/errors.js";
 import { getCoercedSearchParams, getURLwithSearchParams } from "./lib/urls.js";
 
@@ -135,7 +118,7 @@ export class Client extends RESTClient {
 		credential: string;
 		username?: string;
 		email?: string;
-	}): Promise<Account> {
+	}) {
 		const response = await this.request(RequestMethod.POST, "/accounts", {
 			challenge: parameters.challenge,
 			credential: parameters.credential,
@@ -144,21 +127,18 @@ export class Client extends RESTClient {
 		});
 
 		const json = (await response.json()) as unknown;
-		const data = parse(AccountResponse, json);
+		const data = parse(object({ account: Account }), json);
 		return data.account;
 	}
 
-	async login(parameters: {
-		challenge: string;
-		credential: string;
-	}): Promise<Account> {
+	async login(parameters: { challenge: string; credential: string }) {
 		const response = await this.request(RequestMethod.POST, "/sessions", {
 			challenge: parameters.challenge,
 			credential: parameters.credential,
 		});
 
 		const json = (await response.json()) as unknown;
-		const data = parse(AccountResponse, json);
+		const data = parse(object({ account: Account }), json);
 
 		return data.account;
 	}
@@ -169,14 +149,14 @@ export class Client extends RESTClient {
 		limit?: number;
 		before?: string;
 		after?: string;
-	}): Promise<Record<string, PartialAccount>> {
+	}) {
 		const response = await this.request(
 			RequestMethod.GET,
 			getURLwithSearchParams(`/accounts`, getCoercedSearchParams(pagination)),
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(AccountListResponse, json);
+		const data = parse(object({ accounts: array(Account) }), json);
 
 		return data.accounts;
 	}
@@ -188,7 +168,7 @@ export class Client extends RESTClient {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(AccountResponse, json);
+		const data = parse(object({ account: Account }), json);
 
 		return data.account;
 	}
@@ -221,7 +201,7 @@ export class Client extends RESTClient {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(AccountResponse, json);
+		const data = parse(object({ account: Account }), json);
 
 		return data.account;
 	}
@@ -236,14 +216,14 @@ export class Client extends RESTClient {
 
 	// #region Credentials
 
-	async listCredentials(): Promise<Record<string, PartialCredential>> {
+	async listCredentials(): Promise<Array<Credential>> {
 		const response = await this.request(
 			RequestMethod.GET,
 			"/accounts/credentials",
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(CredentialListResponse, json);
+		const data = parse(object({ credentials: array(Credential) }), json);
 
 		return data.credentials;
 	}
@@ -267,7 +247,7 @@ export class Client extends RESTClient {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(CredentialResponse, json);
+		const data = parse(object({ credential: Credential }), json);
 
 		return data.credential;
 	}
@@ -282,7 +262,7 @@ export class Client extends RESTClient {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(CredentialResponse, json);
+		const data = parse(object({ credential: Credential }), json);
 
 		return data.credential;
 	}
@@ -301,7 +281,7 @@ export class Client extends RESTClient {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(CredentialResponse, json);
+		const data = parse(object({ credential: Credential }), json);
 
 		return data.credential;
 	}
@@ -324,7 +304,7 @@ export class Client extends RESTClient {
 		limit?: number;
 		before?: string;
 		after?: string;
-	}): Promise<Record<string, PartialOrganization>> {
+	}) {
 		const response = await this.request(
 			RequestMethod.GET,
 			getURLwithSearchParams(
@@ -334,7 +314,7 @@ export class Client extends RESTClient {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(OrganizationListResponse, json);
+		const data = parse(object({ organizations: array(Organization) }), json);
 
 		return data.organizations;
 	}
@@ -351,7 +331,7 @@ export class Client extends RESTClient {
 		});
 
 		const json = (await response.json()) as unknown;
-		const data = parse(OrganizationResponse, json);
+		const data = parse(object({ organization: Organization }), json);
 
 		return data.organization;
 	}
@@ -363,7 +343,7 @@ export class Client extends RESTClient {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(OrganizationResponse, json);
+		const data = parse(object({ organization: Organization }), json);
 
 		return data.organization;
 	}
@@ -382,7 +362,7 @@ export class Client extends RESTClient {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(OrganizationResponse, json);
+		const data = parse(object({ organization: Organization }), json);
 
 		return data.organization;
 	}
@@ -396,16 +376,14 @@ export class Client extends RESTClient {
 	}
 
 	// #region Roles
-	async listRoles(
-		organizationId: string,
-	): Promise<Record<string, PartialRole>> {
+	async listRoles(organizationId: string) {
 		const response = await this.request(
 			RequestMethod.GET,
 			`/organizations/${organizationId}/roles`,
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(RoleListResponse, json);
+		const data = parse(object({ roles: Role }), json);
 
 		return data.roles;
 	}
@@ -427,7 +405,7 @@ export class Client extends RESTClient {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(RoleResponse, json);
+		const data = parse(object({ role: Role }), json);
 
 		return data.role;
 	}
@@ -439,7 +417,7 @@ export class Client extends RESTClient {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(RoleResponse, json);
+		const data = parse(object({ role: Role }), json);
 
 		return data.role;
 	}
@@ -464,7 +442,7 @@ export class Client extends RESTClient {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(RoleResponse, json);
+		const data = parse(object({ role: Role }), json);
 
 		return data.role;
 	}
@@ -486,7 +464,7 @@ export class Client extends RESTClient {
 			before?: string;
 			after?: string;
 		},
-	): Promise<Record<string, PartialInvitation>> {
+	) {
 		const response = await this.request(
 			RequestMethod.GET,
 			getURLwithSearchParams(
@@ -496,7 +474,7 @@ export class Client extends RESTClient {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(InvitationListResponse, json);
+		const data = parse(object({ invitations: Invitation }), json);
 
 		return data.invitations;
 	}
@@ -521,7 +499,7 @@ export class Client extends RESTClient {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(InvitationResponse, json);
+		const data = parse(object({ invitation: Invitation }), json);
 
 		return data.invitation;
 	}
@@ -536,7 +514,7 @@ export class Client extends RESTClient {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(InvitationResponse, json);
+		const data = parse(object({ invitation: Invitation }), json);
 
 		return data.invitation;
 	}
@@ -561,7 +539,7 @@ export class Client extends RESTClient {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(InvitationResponse, json);
+		const data = parse(object({ invitation: Invitation }), json);
 
 		return data.invitation;
 	}
@@ -586,7 +564,7 @@ export class Client extends RESTClient {
 			before?: string;
 			after?: string;
 		},
-	): Promise<Record<string, PartialMember>> {
+	) {
 		const response = await this.request(
 			RequestMethod.GET,
 			getURLwithSearchParams(
@@ -596,7 +574,7 @@ export class Client extends RESTClient {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(MemberListResponse, json);
+		const data = parse(object({ members: array(Member) }), json);
 
 		return data.members;
 	}
@@ -619,7 +597,7 @@ export class Client extends RESTClient {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(MemberResponse, json);
+		const data = parse(object({ member: Member }), json);
 
 		return data.member;
 	}
@@ -631,7 +609,7 @@ export class Client extends RESTClient {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(MemberResponse, json);
+		const data = parse(object({ member: Member }), json);
 
 		return data.member;
 	}
@@ -655,7 +633,7 @@ export class Client extends RESTClient {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(MemberResponse, json);
+		const data = parse(object({ member: Member }), json);
 
 		return data.member;
 	}
@@ -681,7 +659,7 @@ export class Client extends RESTClient {
 			before?: string;
 			after?: string;
 		},
-	): Promise<Record<string, PartialRole>> {
+	) {
 		const response = await this.request(
 			RequestMethod.GET,
 			getURLwithSearchParams(
@@ -691,7 +669,7 @@ export class Client extends RESTClient {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(RoleListResponse, json);
+		const data = parse(object({ roles: array(MemberRole) }), json);
 
 		return data.roles;
 	}
@@ -707,7 +685,7 @@ export class Client extends RESTClient {
 		);
 
 		const json = (await response.json()) as unknown;
-		const data = parse(MemberResponse, json);
+		const data = parse(object({ member: Member }), json);
 
 		return data.member;
 	}

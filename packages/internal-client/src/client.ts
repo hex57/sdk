@@ -1,5 +1,5 @@
-import { RESTClient, RequestMethod, RestClientOptions } from "@0x57/client";
-import { webauthn } from "@0x57/schemas";
+import { RequestMethod, RESTClient, RestClientOptions } from "@0x57/client";
+import { webauthn, Workspace as WorkspaceSchema } from "@0x57/schemas";
 
 import * as v from "valibot";
 import { AuthenticationResponse } from "./schema.js";
@@ -22,14 +22,11 @@ export class Client extends RESTClient {
 	async getLoginChallenge() {
 		const response = await this.request(RequestMethod.GET, "/login");
 
-		const json = (await response.json()) as unknown;
-
 		return v.parse(
 			v.object({
 				options: webauthn.PublicKeyCredentialRequestOptionsSchema,
-				token: v.string(),
 			}),
-			json,
+			await response.json(),
 		);
 	}
 
@@ -47,22 +44,17 @@ export class Client extends RESTClient {
 			challenge,
 		});
 
-		const json = (await response.json()) as unknown;
-
-		return v.parse(AuthenticationResponse, json);
+		return v.parse(AuthenticationResponse, await response.json());
 	}
 
 	async getRegistrationChallenge() {
 		const response = await this.request(RequestMethod.GET, "/register");
 
-		const json = (await response.json()) as unknown;
-
 		return v.parse(
 			v.object({
 				options: webauthn.PublicKeyCredentialCreationOptionsSchema,
-				token: v.string(),
 			}),
-			json,
+			await response.json(),
 		);
 	}
 
@@ -86,8 +78,47 @@ export class Client extends RESTClient {
 			challenge,
 		});
 
-		const json = (await response.json()) as unknown;
+		return v.parse(AuthenticationResponse, await response.json());
+	}
 
-		return v.parse(AuthenticationResponse, json);
+	async getWorkspaces() {
+		const response = await this.request(RequestMethod.GET, "/workspaces");
+
+		return v.parse(
+			v.object({
+				workspaces: v.array(WorkspaceSchema),
+			}),
+			await response.json(),
+		);
+	}
+
+	async getWorkspace(id: string) {
+		const response = await this.request(RequestMethod.GET, `/workspaces/${id}`);
+
+		return v.parse(
+			v.object({
+				workspace: WorkspaceSchema,
+			}),
+			await response.json(),
+		);
+	}
+
+	async createWorkspace(workspace: {
+		name: string;
+		production: { name: string; rpid: string; origin: string };
+		development: { name: string; rpid: string; origin: string };
+	}) {
+		const response = await this.request(
+			RequestMethod.POST,
+			"/workspaces",
+			workspace,
+		);
+
+		return v.parse(
+			v.object({
+				workspace: WorkspaceSchema,
+			}),
+			await response.json(),
+		);
 	}
 }
